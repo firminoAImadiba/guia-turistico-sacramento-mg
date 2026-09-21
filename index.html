@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia Virtual de Sacramento - MG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        forest: {
+                            primary: '#478a3f',
+                            dark: '#375734',
+                            bright: '#8be381',
+                            muted: '#787d78',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --forest-primary: #478a3f;
+            --forest-dark: #375734;
+            --forest-bright: #8be381;
+            --forest-muted: #787d78;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 12px rgba(139, 227, 129, 0.45), 0 0 4px rgba(139, 227, 129, 0.6); }
+            50% { box-shadow: 0 0 28px rgba(139, 227, 129, 0.85), 0 0 8px rgba(139, 227, 129, 0.9); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        body {
+            background-color: #1e2e1d;
+        }
+
+        .animated-gradient {
+            background: linear-gradient(-45deg, #1a2b1a, #375734, #2a4a28, #478a3f, #1a2b1a);
+            background-size: 400% 400%;
+            animation: gradient-shift 16s ease infinite;
+        }
+
+        .blob-bg {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.55;
+            animation: blob 20s infinite ease-in-out;
+        }
+
+        /* ---- Glassmorphism com tons de #375734 ---- */
+        .glass {
+            background: rgba(55, 87, 52, 0.35);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 227, 129, 0.25);
+        }
+
+        .glass-strong {
+            background: rgba(55, 87, 52, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 227, 129, 0.35);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(139, 227, 129, 0.15);
+        }
+
+        .glass-input {
+            background: rgba(55, 87, 52, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(120, 125, 120, 0.5);
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+        }
+
+        .glass-input:focus {
+            background: rgba(55, 87, 52, 0.65);
+            border-color: rgba(139, 227, 129, 0.7);
+            box-shadow: 0 0 0 3px rgba(71, 138, 63, 0.35), 0 0 18px rgba(139, 227, 129, 0.25);
+        }
+
+        /* ---- Bolhas ---- */
+        .bubble-guide {
+            background: rgba(55, 87, 52, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 227, 129, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(139, 227, 129, 0.12);
+        }
+
+        .bubble-user {
+            background: rgba(71, 138, 63, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 227, 129, 0.5);
+            box-shadow: 0 4px 20px rgba(71, 138, 63, 0.35), inset 0 1px 0 rgba(139, 227, 129, 0.25);
+        }
+
+        .message-bubble { animation: slideUp 0.3s ease-out; }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: var(--forest-bright);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        .btn-shortcut { transition: all 0.3s ease; }
+        .btn-shortcut:hover {
+            transform: translateY(-2px);
+            background: rgba(71, 138, 63, 0.5);
+            border-color: rgba(139, 227, 129, 0.6);
+            box-shadow: 0 10px 30px rgba(71, 138, 63, 0.45), 0 0 14px rgba(139, 227, 129, 0.25);
+        }
+        .btn-shortcut:active { transform: translateY(0) scale(0.98); }
+
+        .send-btn {
+            transition: all 0.3s ease;
+            background: rgba(71, 138, 63, 0.6);
+            border: 1px solid rgba(139, 227, 129, 0.5);
+        }
+        .send-btn:hover {
+            transform: scale(1.05);
+            background: rgba(71, 138, 63, 0.85);
+            box-shadow: 0 8px 25px rgba(71, 138, 63, 0.55), 0 0 16px rgba(139, 227, 129, 0.45);
+        }
+        .send-btn:active { transform: scale(0.95); }
+        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .status-dot { animation: pulse-glow 2s ease-in-out infinite; background-color: var(--forest-bright); }
+
+        /* Textarea auto-expansível */
+        #messageInput {
+            resize: none;
+            overflow-y: auto;
+            min-height: 52px;
+            max-height: 150px;
+            line-height: 1.5;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(55, 87, 52, 0.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(139, 227, 129, 0.35); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(139, 227, 129, 0.55); }
+
+        .chat-scroll { scrollbar-width: thin; scrollbar-color: rgba(139,227,129,0.35) rgba(55,87,52,0.3); }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen animated-gradient relative overflow-x-hidden">
+    <!-- Blobs de fundo na paleta floresta -->
+    <div class="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
+        <div class="blob-bg w-96 h-96 top-1/4 left-1/4" style="background: rgba(71,138,63,0.5); animation-delay: 0s;"></div>
+        <div class="blob-bg w-72 h-72 top-1/2 right-1/4" style="background: rgba(55,87,52,0.7); animation-delay: -5s;"></div>
+        <div class="blob-bg w-64 h-64 bottom-1/4 left-1/2" style="background: rgba(139,227,129,0.35); animation-delay: -10s;"></div>
+        <div class="blob-bg w-80 h-80 top-1/3 right-1/3" style="background: rgba(71,138,63,0.4); animation-delay: -15s;"></div>
+        <div class="blob-bg w-56 h-56 bottom-1/3 left-1/3" style="background: rgba(120,125,120,0.35); animation-delay: -7s;"></div>
+    </div>
+
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-5" aria-hidden="true" style="background-image: url('data:image/svg+xml,<svg viewBox=\"0 0 256 256\" xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"noise\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" stitchTiles=\"stitch\"/></filter><rect width=\"100%\" height=\"100%\" filter=\"url(%23noise)\"/></svg>');"></div>
+
+    <main class="relative z-10 min-h-screen flex flex-col">
+        <!-- Cabeçalho -->
+        <header class="glass-strong px-4 py-4 sm:px-6 lg:px-8 rounded-b-3xl">
+            <div class="max-w-2xl mx-auto">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="text-center sm:text-left">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-white">
+                            <i class="fas fa-leaf mr-2" style="color: #8be381;"></i>
+                            Guia Virtual de Sacramento
+                        </h1>
+                        <p class="text-sm sm:text-base mt-1" style="color: rgba(139,227,129,0.8);">Seu assistente local em Sacramento - MG</p>
+                    </div>
+                    <div class="flex items-center gap-3 justify-center sm:justify-end">
+                        <div class="flex items-center gap-2 glass px-3 py-1.5 rounded-full shadow-lg">
+                            <span class="status-dot w-2.5 h-2.5 rounded-full"></span>
+                            <span class="text-xs sm:text-sm font-medium text-white">Online</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Atalhos rápidos -->
+        <section class="px-4 py-3 sm:px-6 lg:px-8">
+            <div class="max-w-2xl mx-auto">
+                <div class="glass-strong rounded-2xl p-4 shadow-xl">
+                    <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color: rgba(139,227,129,0.7);">Atalhos rápidos</p>
+                    <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" id="shortcutsContainer">
+                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Gruta dos Palhares">
+                            <i class="fas fa-mountain" style="color: #8be381;"></i>
+                            <span>📍 Gruta dos Palhares</span>
+                        </button>
+                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Povoado do Desemboque">
+                            <i class="fas fa-landmark" style="color: #8be381;"></i>
+                            <span>📜 Povoado do Desemboque</span>
+                        </button>
+                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Cachoeiras e Trilhas">
+                            <i class="fas fa-water" style="color: #8be381;"></i>
+                            <span>🏞️ Cachoeiras e Trilhas</span>
+                        </button>
+                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Onde Comer e Hospedar">
+                            <i class="fas fa-utensils" style="color: #8be381;"></i>
+                            <span>☕ Onde Comer e Hospedar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Área de chat -->
+        <section class="flex-1 px-4 py-3 sm:px-6 lg:px-8 overflow-hidden">
+            <div class="max-w-2xl mx-auto glass-strong rounded-3xl shadow-2xl flex flex-col overflow-hidden" style="min-height: 320px; max-height: 60vh;">
+                <div class="flex-1 overflow-y-auto p-4 space-y-4 chat-scroll" id="messagesContainer" role="log" aria-live="polite" aria-label="Conversa com o guia">
+                    <div class="message-bubble flex items-start gap-3" data-sender="guide">
+                        <div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">
+                            <i class="fas fa-leaf text-lg" style="color: #8be381;"></i>
+                        </div>
+                        <div class="bubble-guide px-4 py-3 rounded-2xl rounded-tl-sm max-w-[85%]">
+                            <p class="text-white text-sm sm:text-base leading-relaxed">Bem-vindo a Sacramento! Como posso ajudar você hoje?</p>
+                            <span class="text-xs block mt-1 text-right" style="color: rgba(139,227,129,0.6);">Agora mesmo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="typingIndicator" class="hidden px-4 pb-4 items-start gap-3" data-sender="guide">
+                    <div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <i class="fas fa-leaf text-lg" style="color: #8be381;"></i>
+                    </div>
+                    <div class="bubble-guide px-4 py-3 rounded-2xl rounded-tl-sm">
+                        <p class="text-xs mb-1" style="color: rgba(139,227,129,0.7);">Digitando...</p>
+                        <div class="typing-indicator flex items-center gap-1">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Barra de entrada com textarea expansível -->
+        <section class="px-4 pb-4 sm:px-6 lg:px-8">
+            <div class="max-w-2xl mx-auto">
+                <div class="glass-strong rounded-2xl shadow-xl p-3">
+                    <form id="chatForm" class="flex items-end gap-3" onsubmit="return false;">
+                        <div class="flex-1 relative">
+                            <textarea
+                                id="messageInput"
+                                rows="1"
+                                placeholder="Digite sua mensagem aqui..."
+                                class="glass-input w-full px-5 py-3.5 rounded-2xl text-white text-sm sm:text-base focus:outline-none"
+                                style="--tw-placeholder-opacity: 1;"
+                                autocomplete="off"
+                                aria-label="Digite sua mensagem"
+                            ></textarea>
+                        </div>
+                        <button
+                            type="submit"
+                            id="sendBtn"
+                            class="send-btn p-3.5 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0"
+                            style="min-width: 52px; min-height: 52px;"
+                            aria-label="Enviar mensagem"
+                        >
+                            <i class="fas fa-paper-plane text-white text-lg"></i>
+                        </button>
+                    </form>
+                    <p class="text-xs mt-2 px-1" style="color: rgba(120,125,120,0.9);">Pressione <strong>Enter</strong> para enviar e <strong>Shift + Enter</strong> para quebrar linha.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatForm = document.getElementById('chatForm');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const shortcutButtons = document.querySelectorAll('.btn-shortcut');
+
+        let isProcessing = false;
+
+        function scrollToBottom() {
+            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+        }
+
+        function formatTime() {
+            return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/\n/g, '<br>');
+        }
+
+        function autoResizeTextarea() {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = Math.min(messageInput.scrollHeight, 150) + 'px';
+            messageInput.style.overflowY = messageInput.scrollHeight > 150 ? 'auto' : 'hidden';
+        }
+
+        function createMessageElement(text, sender) {
+            const wrapper = document.createElement('div');
+            const isUser = sender === 'user';
+            wrapper.className = 'message-bubble flex items-start gap-3' + (isUser ? ' flex-row-reverse' : '');
+            wrapper.dataset.sender = sender;
+
+            const bubbleClass = isUser ? 'bubble-user rounded-tr-sm' : 'bubble-guide rounded-tl-sm';
+            const icon = isUser ? 'fa-user' : 'fa-leaf';
+
+            wrapper.innerHTML =
+                '<div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">' +
+                    '<i class="fas ' + icon + ' text-lg" style="color: #8be381;"></i>' +
+                '</div>' +
+                '<div class="' + bubbleClass + ' px-4 py-3 rounded-2xl max-w-[85%]">' +
+                    '<p class="text-white text-sm sm:text-base leading-relaxed" style="white-space: pre-wrap; word-break: break-word;' + (isUser ? ' text-align: right;' : '') + '">' + escapeHtml(text) + '</p>' +
+                    '<span class="text-xs block mt-1 ' + (isUser ? 'text-left' : 'text-right') + '" style="color: rgba(139,227,129,0.6);">' + formatTime() + '</span>' +
+                '</div>';
+            return wrapper;
+        }
+
+        function addMessage(text, sender) {
+            const el = createMessageElement(text, sender);
+            messagesContainer.appendChild(el);
+            scrollToBottom();
+            return el;
+        }
+
+        function showTyping() {
+            typingIndicator.classList.remove('hidden');
+            typingIndicator.classList.add('flex');
+            scrollToBottom();
+        }
+
+        function hideTyping() {
+            typingIndicator.classList.add('hidden');
+            typingIndicator.classList.remove('flex');
+        }
+
+        async function processMessage(userText) {
+            if (isProcessing || !userText.trim()) return;
+            isProcessing = true;
+
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+
+            addMessage(userText, 'user');
+
+            messageInput.value = '';
+            autoResizeTextarea();
+
+            showTyping();
+            await new Promise(function (r) { setTimeout(r, 500); });
+            hideTyping();
+
+            addMessage('Você disse: ' + userText, 'guide');
+
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+            messageInput.focus();
+            isProcessing = false;
+        }
+
+        chatForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            processMessage(messageInput.value);
+        });
+
+        shortcutButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (!isProcessing) processMessage(btn.dataset.message);
+            });
+        });
+
+        // Enter envia, Shift+Enter quebra linha
+        messageInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                processMessage(messageInput.value);
+            }
+        });
+
+        messageInput.addEventListener('input', autoResizeTextarea);
+
+        autoResizeTextarea();
+        messageInput.focus();
+    </script>
+</body>
+</html>
