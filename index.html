@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
     <title>Guia Virtual de Sacramento - MG</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -57,8 +57,27 @@
             30% { transform: translateY(-6px); opacity: 1; }
         }
 
+        html, body {
+            height: 100%;
+        }
+
         body {
             background-color: #1e2e1d;
+            /* A página nunca rola: só a área de mensagens tem scroll */
+            overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        /* Altura dinâmica: acompanha teclado virtual e barras do navegador mobile */
+        .app-shell {
+            height: 100vh; /* fallback para navegadores antigos */
+            height: 100dvh;
+        }
+
+        /* Respeita a área segura (notch / gestos) no rodapé */
+        .safe-bottom {
+            padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
         }
 
         .animated-gradient {
@@ -164,9 +183,23 @@
         #messageInput {
             resize: none;
             overflow-y: auto;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
             min-height: 52px;
             max-height: 150px;
             line-height: 1.5;
+        }
+
+        /* 16px no mobile evita o zoom automático do iOS ao focar */
+        @media (max-width: 639px) {
+            #messageInput { font-size: 16px; }
+        }
+
+        /* Quebra palavras longas p/ nunca estourar a borda do dispositivo */
+        .bubble-text {
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -188,7 +221,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen animated-gradient relative overflow-x-hidden">
+<body class="animated-gradient relative overflow-hidden w-full max-w-full">
     <!-- Blobs de fundo na paleta floresta -->
     <div class="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
         <div class="blob-bg w-96 h-96 top-1/4 left-1/4" style="background: rgba(71,138,63,0.5); animation-delay: 0s;"></div>
@@ -200,13 +233,13 @@
 
     <div class="fixed inset-0 pointer-events-none z-0 opacity-5" aria-hidden="true" style="background-image: url('data:image/svg+xml,<svg viewBox=\"0 0 256 256\" xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"noise\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" stitchTiles=\"stitch\"/></filter><rect width=\"100%\" height=\"100%\" filter=\"url(%23noise)\"/></svg>');"></div>
 
-    <main class="relative z-10 min-h-screen flex flex-col">
+    <main class="relative z-10 flex flex-col overflow-hidden app-shell w-full max-w-full">
         <!-- Cabeçalho -->
-        <header class="glass-strong px-4 py-4 sm:px-6 lg:px-8 rounded-b-3xl">
-            <div class="max-w-2xl mx-auto">
+        <header class="glass-strong px-4 py-3 sm:px-6 lg:px-8 rounded-b-3xl flex-shrink-0 w-full">
+            <div class="max-w-2xl mx-auto w-full min-w-0">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div class="text-center sm:text-left">
-                        <h1 class="text-2xl sm:text-3xl font-bold text-white">
+                        <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight">
                             <i class="fas fa-leaf mr-2" style="color: #8be381;"></i>
                             Guia Virtual de Sacramento
                         </h1>
@@ -223,8 +256,8 @@
         </header>
 
         <!-- Atalhos rápidos -->
-        <section class="px-4 py-3 sm:px-6 lg:px-8">
-            <div class="max-w-2xl mx-auto">
+        <section class="px-4 py-2 sm:px-6 lg:px-8 flex-shrink-0 w-full">
+            <div class="max-w-2xl mx-auto w-full min-w-0">
                 <div class="glass-strong rounded-2xl p-4 shadow-xl">
                     <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color: rgba(139,227,129,0.7);">Atalhos rápidos</p>
                     <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" id="shortcutsContainer">
@@ -250,15 +283,15 @@
         </section>
 
         <!-- Área de chat -->
-        <section class="flex-1 px-4 py-3 sm:px-6 lg:px-8 overflow-hidden">
-            <div class="max-w-2xl mx-auto glass-strong rounded-3xl shadow-2xl flex flex-col overflow-hidden" style="min-height: 320px; max-height: 60vh;">
-                <div class="flex-1 overflow-y-auto p-4 space-y-4 chat-scroll" id="messagesContainer" role="log" aria-live="polite" aria-label="Conversa com o guia">
+        <section class="flex-1 min-h-0 px-3 py-2 sm:px-6 lg:px-8 overflow-hidden w-full">
+            <div class="max-w-2xl mx-auto w-full glass-strong rounded-3xl shadow-2xl flex flex-col overflow-hidden h-full min-h-0">
+                <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 chat-scroll" id="messagesContainer" role="log" aria-live="polite" aria-label="Conversa com o guia">
                     <div class="message-bubble flex items-start gap-3" data-sender="guide">
                         <div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">
                             <i class="fas fa-leaf text-lg" style="color: #8be381;"></i>
                         </div>
-                        <div class="bubble-guide px-4 py-3 rounded-2xl rounded-tl-sm max-w-[85%]">
-                            <p class="text-white text-sm sm:text-base leading-relaxed">Bem-vindo a Sacramento! Como posso ajudar você hoje?</p>
+                        <div class="bubble-guide px-4 py-3 rounded-2xl rounded-tl-sm max-w-[85%] min-w-0">
+                            <p class="bubble-text text-white text-sm sm:text-base leading-relaxed">Bem-vindo a Sacramento! Como posso ajudar você hoje?</p>
                             <span class="text-xs block mt-1 text-right" style="color: rgba(139,227,129,0.6);">Agora mesmo</span>
                         </div>
                     </div>
@@ -279,14 +312,15 @@
         </section>
 
         <!-- Barra de entrada com textarea expansível -->
-        <section class="px-4 pb-4 sm:px-6 lg:px-8">
-            <div class="max-w-2xl mx-auto">
+        <section class="px-3 pt-2 sm:px-6 lg:px-8 flex-shrink-0 w-full safe-bottom">
+            <div class="max-w-2xl mx-auto w-full min-w-0">
                 <div class="glass-strong rounded-2xl shadow-xl p-3">
                     <form id="chatForm" class="flex items-end gap-3" onsubmit="return false;">
-                        <div class="flex-1 relative">
+                        <div class="flex-1 min-w-0 relative">
                             <textarea
                                 id="messageInput"
                                 rows="1"
+                                enterkeyhint="send"
                                 placeholder="Digite sua mensagem aqui..."
                                 class="glass-input w-full px-5 py-3.5 rounded-2xl text-white text-sm sm:text-base focus:outline-none"
                                 style="--tw-placeholder-opacity: 1;"
@@ -319,6 +353,16 @@
         const shortcutButtons = document.querySelectorAll('.btn-shortcut');
 
         let isProcessing = false;
+
+        // Dispositivo com teclado virtual (mobile/tablet)
+        const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+
+        // Fecha o teclado virtual dispensando o foco do elemento ativo
+        function dismissKeyboard() {
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
+        }
 
         function scrollToBottom() {
             messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
@@ -353,8 +397,8 @@
                 '<div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">' +
                     '<i class="fas ' + icon + ' text-lg" style="color: #8be381;"></i>' +
                 '</div>' +
-                '<div class="' + bubbleClass + ' px-4 py-3 rounded-2xl max-w-[85%]">' +
-                    '<p class="text-white text-sm sm:text-base leading-relaxed" style="white-space: pre-wrap; word-break: break-word;' + (isUser ? ' text-align: right;' : '') + '">' + escapeHtml(text) + '</p>' +
+                '<div class="' + bubbleClass + ' px-4 py-3 rounded-2xl max-w-[85%] min-w-0">' +
+                    '<p class="bubble-text text-white text-sm sm:text-base leading-relaxed" style="white-space: pre-wrap;' + (isUser ? ' text-align: right;' : '') + '">' + escapeHtml(text) + '</p>' +
                     '<span class="text-xs block mt-1 ' + (isUser ? 'text-left' : 'text-right') + '" style="color: rgba(139,227,129,0.6);">' + formatTime() + '</span>' +
                 '</div>';
             return wrapper;
@@ -398,7 +442,12 @@
 
             messageInput.disabled = false;
             sendBtn.disabled = false;
-            messageInput.focus();
+            // No mobile fecha o teclado após enviar; no desktop mantém o foco
+            if (isTouchDevice) {
+                dismissKeyboard();
+            } else {
+                messageInput.focus();
+            }
             isProcessing = false;
         }
 
@@ -424,7 +473,16 @@
         messageInput.addEventListener('input', autoResizeTextarea);
 
         autoResizeTextarea();
-        messageInput.focus();
+
+        // Reposiciona o chat quando o teclado virtual abre/fecha
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', scrollToBottom);
+        }
+
+        // Não força foco no mobile (evita abrir o teclado sozinho)
+        if (!isTouchDevice) {
+            messageInput.focus();
+        }
     </script>
 </body>
 </html>
