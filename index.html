@@ -3,243 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="description" content="Guia Virtual de Sacramento - MG: seu assistente local para pontos turísticos, cachoeiras, história, gastronomia e hospedagem.">
+    <meta name="theme-color" content="#375734">
     <title>Guia Virtual de Sacramento - MG</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23478a3f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z'/%3E%3Cpath d='M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12'/%3E%3C/svg%3E">
+
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        forest: {
-                            primary: '#478a3f',
-                            dark: '#375734',
-                            bright: '#8be381',
-                            muted: '#787d78',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        html, body { height: 100%; }
-        body {
-            min-height: 100vh;
-            min-height: 100dvh;
-            /* A página nunca rola: só a área de mensagens tem scroll */
-            overflow: hidden;
-            overscroll-behavior: none;
-            -webkit-text-size-adjust: 100%;
-        }
-        main { height: 100vh; height: 100dvh; }
-
-        /* Respeita a área segura (notch / gestos) no rodapé */
-        .safe-bottom {
-            padding-bottom: max(1rem, env(safe-area-inset-bottom));
-        }
-        .icon { width: 1.1em; height: 1.1em; flex-shrink: 0; }
-        .icon-lg { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
-        :root {
-            --forest-primary: #478a3f;
-            --forest-dark: #375734;
-            --forest-bright: #8be381;
-            --forest-muted: #787d78;
-        }
-
-        @keyframes gradient-shift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        @keyframes blob {
-            0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
-            100% { transform: translate(0px, 0px) scale(1); }
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 12px rgba(139, 227, 129, 0.45), 0 0 4px rgba(139, 227, 129, 0.6); }
-            50% { box-shadow: 0 0 28px rgba(139, 227, 129, 0.85), 0 0 8px rgba(139, 227, 129, 0.9); }
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-            30% { transform: translateY(-6px); opacity: 1; }
-        }
-
-        body {
-            background-color: #1e2e1d;
-        }
-
-        .animated-gradient {
-            background: linear-gradient(-45deg, #1a2b1a, #375734, #2a4a28, #478a3f, #1a2b1a);
-            background-size: 400% 400%;
-            animation: gradient-shift 16s ease infinite;
-        }
-
-        .blob-bg {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(90px);
-            opacity: 0.55;
-            animation: blob 20s infinite ease-in-out;
-        }
-
-        .glass {
-            background: rgba(55, 87, 52, 0.35);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(139, 227, 129, 0.25);
-        }
-
-        .glass-strong {
-            background: rgba(55, 87, 52, 0.55);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(139, 227, 129, 0.35);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(139, 227, 129, 0.15);
-        }
-
-        .glass-input {
-            background: rgba(55, 87, 52, 0.45);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(120, 125, 120, 0.5);
-            transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-        }
-
-        .glass-input:focus {
-            background: rgba(55, 87, 52, 0.65);
-            border-color: rgba(139, 227, 129, 0.7);
-            box-shadow: 0 0 0 3px rgba(71, 138, 63, 0.35), 0 0 18px rgba(139, 227, 129, 0.25);
-        }
-
-        .bubble-guide {
-            background: rgba(55, 87, 52, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(139, 227, 129, 0.3);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(139, 227, 129, 0.12);
-        }
-
-        .bubble-user {
-            background: rgba(71, 138, 63, 0.55);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(139, 227, 129, 0.5);
-            box-shadow: 0 4px 20px rgba(71, 138, 63, 0.35), inset 0 1px 0 rgba(139, 227, 129, 0.25);
-        }
-
-        .message-bubble { animation: slideUp 0.3s ease-out; }
-
-        .typing-indicator span {
-            display: inline-block;
-            width: 8px; height: 8px;
-            background: var(--forest-bright);
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: typing 1.4s infinite ease-in-out;
-        }
-        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-
-        .btn-shortcut { transition: all 0.3s ease; flex-shrink: 0; }
-        .btn-shortcut:hover {
-            transform: translateY(-2px);
-            background: rgba(71, 138, 63, 0.5);
-            border-color: rgba(139, 227, 129, 0.6);
-            box-shadow: 0 0 0 1px rgba(139, 227, 129, 0.6), 0 4px 12px rgba(71, 138, 63, 0.4), 0 0 8px rgba(139, 227, 129, 0.2);
-            position: relative;
-            z-index: 1;
-        }
-        .btn-shortcut:active { transform: translateY(0) scale(0.98); }
-
-        #shortcutsContainer {
-            padding-top: 12px;
-            margin-top: -8px;
-            padding-bottom: 14px;
-            margin-bottom: -10px;
-            padding-left: 4px;
-            padding-right: 4px;
-            --fade-l: 0;
-            --fade-r: 1;
-            -webkit-mask-image: linear-gradient(to right, transparent 0, black calc(var(--fade-l) * 32px), black calc(100% - var(--fade-r) * 32px), transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0, black calc(var(--fade-l) * 32px), black calc(100% - var(--fade-r) * 32px), transparent 100%);
-        }
-
-        .send-btn {
-            width: 52px;
-            height: 52px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: all 0.3s ease;
-            background: rgba(71, 138, 63, 0.6);
-            border: 1px solid rgba(139, 227, 129, 0.5);
-            box-sizing: border-box;
-        }
-        .send-btn:hover {
-            transform: scale(1.05);
-            background: rgba(71, 138, 63, 0.85);
-            box-shadow: 0 8px 25px rgba(71, 138, 63, 0.55), 0 0 16px rgba(139, 227, 129, 0.45);
-        }
-        .send-btn:active { transform: scale(0.95); }
-        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        .status-dot { animation: pulse-glow 2s ease-in-out infinite; background-color: var(--forest-bright); }
-
-        #messageInput {
-            resize: none;
-            overflow-y: hidden;
-            width: 100%;
-            max-width: 100%;
-            height: 52px;
-            min-height: 52px;
-            max-height: 150px;
-            line-height: 1.5;
-            box-sizing: border-box;
-        }
-
-        /* 16px no mobile evita o zoom automático do iOS ao focar */
-        @media (max-width: 639px) {
-            #messageInput { font-size: 16px; }
-        }
-
-        /* Quebra palavras longas p/ nunca estourar a borda do dispositivo */
-        .bubble-text {
-            overflow-wrap: anywhere;
-            word-break: break-word;
-        }
-
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(55, 87, 52, 0.3); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb { background: rgba(139, 227, 129, 0.35); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(139, 227, 129, 0.55); }
-
-        .chat-scroll { scrollbar-width: thin; scrollbar-color: rgba(139,227,129,0.35) rgba(55,87,52,0.3); }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-    </style>
+    <script src="assets/js/tailwind-config.js"></script>
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body class="animated-gradient relative overflow-hidden w-full max-w-full">
+    <!-- Sprite de ícones SVG (inline para funcionar também via file://) -->
     <svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true">
         <defs>
             <symbol id="i-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -266,6 +41,8 @@
             </symbol>
         </defs>
     </svg>
+
+    <!-- Fundo ambiente -->
     <div class="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
         <div class="blob-bg w-96 h-96 top-1/4 left-1/4" style="background: rgba(71,138,63,0.5); animation-delay: 0s;"></div>
         <div class="blob-bg w-72 h-72 top-1/2 right-1/4" style="background: rgba(55,87,52,0.7); animation-delay: -5s;"></div>
@@ -277,22 +54,21 @@
     <div class="fixed inset-0 pointer-events-none z-0 opacity-5" aria-hidden="true" style="background-image: url('data:image/svg+xml,<svg viewBox=\"0 0 256 256\" xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"noise\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" stitchTiles=\"stitch\"/></filter><rect width=\"100%\" height=\"100%\" filter=\"url(%23noise)\"/></svg>');"></div>
 
     <main class="relative z-10 flex flex-col overflow-hidden w-full max-w-full">
+        <!-- Cabeçalho -->
         <div class="px-4 pt-4 sm:px-6 lg:px-8 sm:pt-5 flex-shrink-0">
-            <header class="glass-strong max-w-2xl mx-auto px-4 py-4 sm:px-6 rounded-3xl">
-            <div class="max-w-2xl mx-auto w-full min-w-0">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div class="text-center sm:text-left">
-                        <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight flex items-center justify-center sm:justify-start gap-2">
-                            <svg class="icon-lg" style="color: #8be381;"><use href="#i-leaf"/></svg>
-                            Guia Virtual de Sacramento
-                        </h1>
-                        <p class="text-sm sm:text-base mt-1" style="color: rgba(139,227,129,0.8);">Seu assistente local em Sacramento - MG</p>
-                    </div>
+            <header class="glass-strong max-w-2xl mx-auto w-full px-4 py-4 sm:px-6 rounded-3xl">
+                <div class="text-center sm:text-left">
+                    <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight flex items-center justify-center sm:justify-start gap-2">
+                        <svg class="icon-lg" style="color: #8be381;"><use href="#i-leaf"/></svg>
+                        Guia Virtual de Sacramento
+                    </h1>
+                    <p class="text-sm sm:text-base mt-1" style="color: rgba(139,227,129,0.8);">Seu assistente local em Sacramento - MG</p>
                 </div>
             </header>
         </div>
 
-        <section class="px-4 py-3 sm:px-6 lg:px-8 flex-shrink-0">
+        <!-- Atalhos rápidos -->
+        <section class="px-4 py-3 sm:px-6 lg:px-8 flex-shrink-0" aria-label="Atalhos rápidos">
             <div class="max-w-2xl mx-auto w-full min-w-0">
                 <div class="glass-strong rounded-2xl p-4 shadow-xl">
                     <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color: rgba(139,227,129,0.7);">Atalhos rápidos</p>
@@ -318,8 +94,9 @@
             </div>
         </section>
 
-        <section class="flex-1 min-h-0 px-4 py-3 sm:px-6 lg:px-8 overflow-hidden">
-            <div class="max-w-2xl mx-auto glass-strong rounded-3xl shadow-2xl flex flex-col overflow-hidden h-full" style="min-height: 0;">
+        <!-- Área de chat -->
+        <section class="flex-1 min-h-0 px-4 py-3 sm:px-6 lg:px-8 overflow-hidden" aria-label="Conversa">
+            <div class="max-w-2xl mx-auto w-full glass-strong rounded-3xl shadow-2xl flex flex-col overflow-hidden h-full min-h-0">
                 <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 chat-scroll" id="messagesContainer" role="log" aria-live="polite" aria-label="Conversa com o guia">
                     <div class="message-bubble flex items-start gap-3" data-sender="guide">
                         <div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">
@@ -346,7 +123,8 @@
             </div>
         </section>
 
-        <section class="px-4 pt-2 sm:px-6 lg:px-8 flex-shrink-0 w-full safe-bottom">
+        <!-- Barra de entrada -->
+        <section class="px-4 pt-2 sm:px-6 lg:px-8 flex-shrink-0 w-full safe-bottom" aria-label="Enviar mensagem">
             <div class="max-w-2xl mx-auto w-full min-w-0">
                 <div class="glass-strong rounded-2xl shadow-xl p-3">
                     <form id="chatForm" class="flex items-end gap-3" onsubmit="return false;">
@@ -356,8 +134,7 @@
                                 rows="1"
                                 enterkeyhint="send"
                                 placeholder="Digite sua mensagem aqui..."
-                                class="glass-input w-full px-5 py-3.5 rounded-2xl text-white text-sm sm:text-base focus:outline-none"
-                                style="--tw-placeholder-opacity: 1;"
+                                class="glass-input w-full px-5 py-3.5 rounded-2xl text-white text-sm sm:text-base placeholder:text-white/50 focus:outline-none"
                                 autocomplete="off"
                                 aria-label="Digite sua mensagem"
                             ></textarea>
@@ -368,7 +145,7 @@
                             class="send-btn rounded-2xl shadow-lg"
                             aria-label="Enviar mensagem"
                         >
-                            <svg class="icon-lg text-white" style="color: #ffffff;"><use href="#i-send"/></svg>
+                            <svg class="icon-lg" style="color: #ffffff;"><use href="#i-send"/></svg>
                         </button>
                     </form>
                     <p class="text-xs mt-2 px-1" style="color: rgba(220,235,220,0.85);">Pressione <strong>Enter</strong> para enviar e <strong>Shift + Enter</strong> para quebrar linha.</p>
@@ -377,157 +154,6 @@
         </section>
     </main>
 
-    <script>
-        const messagesContainer = document.getElementById('messagesContainer');
-        const messageInput = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const chatForm = document.getElementById('chatForm');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const shortcutsContainer = document.getElementById('shortcutsContainer');
-        const shortcutButtons = document.querySelectorAll('.btn-shortcut');
-
-        function updateShortcutsFade() {
-            const maxScroll = shortcutsContainer.scrollWidth - shortcutsContainer.clientWidth;
-            const x = shortcutsContainer.scrollLeft;
-            shortcutsContainer.style.setProperty('--fade-l', x > 4 ? '1' : '0');
-            shortcutsContainer.style.setProperty('--fade-r', x < maxScroll - 4 ? '1' : '0');
-        }
-
-        shortcutsContainer.addEventListener('scroll', updateShortcutsFade, { passive: true });
-        window.addEventListener('resize', updateShortcutsFade);
-        updateShortcutsFade();
-
-        let isProcessing = false;
-
-        // Dispositivo com teclado virtual (mobile/tablet)
-        const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
-
-        // Fecha o teclado virtual dispensando o foco do elemento ativo
-        function dismissKeyboard() {
-            if (document.activeElement instanceof HTMLElement) {
-                document.activeElement.blur();
-            }
-        }
-
-        function scrollToBottom() {
-            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
-        }
-
-        function formatTime() {
-            return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML.replace(/\n/g, '<br>');
-        }
-
-        function autoResizeTextarea() {
-            messageInput.style.height = '52px';
-            const target = Math.min(messageInput.scrollHeight, 150);
-            messageInput.style.height = target + 'px';
-            messageInput.style.overflowY = messageInput.scrollHeight > 150 ? 'auto' : 'hidden';
-        }
-
-        function createMessageElement(text, sender) {
-            const wrapper = document.createElement('div');
-            const isUser = sender === 'user';
-            wrapper.className = 'message-bubble flex items-start gap-3' + (isUser ? ' flex-row-reverse' : '');
-            wrapper.dataset.sender = sender;
-
-            const bubbleClass = isUser ? 'bubble-user rounded-tr-sm' : 'bubble-guide rounded-tl-sm';
-            const icon = isUser ? 'i-user' : 'i-leaf';
-
-            wrapper.innerHTML =
-                '<div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">' +
-                    '<svg class="icon-lg" style="color: #8be381;"><use href="#' + icon + '"/></svg>' +
-                '</div>' +
-                '<div class="' + bubbleClass + ' px-4 py-3 rounded-2xl max-w-[85%] min-w-0">' +
-                    '<p class="bubble-text text-white text-sm sm:text-base leading-relaxed" style="white-space: pre-wrap;' + (isUser ? ' text-align: right;' : '') + '">' + escapeHtml(text) + '</p>' +
-                    '<span class="text-xs block mt-1 ' + (isUser ? 'text-left' : 'text-right') + '" style="color: rgba(139,227,129,0.6);">' + formatTime() + '</span>' +
-                '</div>';
-            return wrapper;
-        }
-
-        function addMessage(text, sender) {
-            const el = createMessageElement(text, sender);
-            messagesContainer.appendChild(el);
-            scrollToBottom();
-            return el;
-        }
-
-        function showTyping() {
-            typingIndicator.classList.remove('hidden');
-            typingIndicator.classList.add('flex');
-            scrollToBottom();
-        }
-
-        function hideTyping() {
-            typingIndicator.classList.add('hidden');
-            typingIndicator.classList.remove('flex');
-        }
-
-        async function processMessage(userText) {
-            if (isProcessing || !userText.trim()) return;
-            isProcessing = true;
-
-            messageInput.disabled = true;
-            sendBtn.disabled = true;
-
-            addMessage(userText, 'user');
-
-            messageInput.value = '';
-            autoResizeTextarea();
-
-            showTyping();
-            await new Promise(function (r) { setTimeout(r, 500); });
-            hideTyping();
-
-            addMessage('Você disse: ' + userText, 'guide');
-
-            messageInput.disabled = false;
-            sendBtn.disabled = false;
-            // No mobile fecha o teclado após enviar; no desktop mantém o foco
-            if (isTouchDevice) {
-                dismissKeyboard();
-            } else {
-                messageInput.focus();
-            }
-            isProcessing = false;
-        }
-
-        chatForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            processMessage(messageInput.value);
-        });
-
-        shortcutButtons.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                if (!isProcessing) processMessage(btn.dataset.message);
-            });
-        });
-
-        messageInput.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                processMessage(messageInput.value);
-            }
-        });
-
-        messageInput.addEventListener('input', autoResizeTextarea);
-
-        autoResizeTextarea();
-
-        // Reposiciona o chat quando o teclado virtual abre/fecha
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', scrollToBottom);
-        }
-
-        // Não força foco no mobile (evita abrir o teclado sozinho)
-        if (!isTouchDevice) {
-            messageInput.focus();
-        }
-    </script>
+    <script src="assets/js/app.js"></script>
 </body>
 </html>

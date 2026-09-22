@@ -10,7 +10,7 @@
 |---|---|
 | **Nome oficial** | Guia Turístico Virtual de Sacramento – MG |
 | **Tipo** | Site chatbot (Single Page Application em arquivo único) |
-| **Arquivo principal** | `index.html` (HTML + CSS + JS unificados, sem build) |
+| **Entrada da aplicação** | `index.html` (markup + sprite SVG inline; CSS/JS em arquivos separados, sem build) |
 | **Natureza** | Projeto **privado**, feito como **TCC do curso de Inteligência Artificial do Instituto Madiba**, em Sacramento – MG |
 | **Autores** | **Arthur Firmino** e **Maria Clara** (estudantes do curso) |
 | **Objetivo social** | Resolver a **falta de guias turísticos suficientes na cidade de Sacramento – MG**, oferecendo um guia virtual acessível pelo navegador |
@@ -53,12 +53,18 @@ O projeto é um **protótipo frontend funcional**, sem backend e sem integraçã
 
 ```text
 guia-turistico-sacramento-mg/
-├── index.html   # A APLICAÇÃO INTEIRA (único arquivo de código)
-├── README.md    # Este arquivo (contexto para IAs e humanos)
-└── .git/        # Repositório git local
+├── index.html            # Markup + sprite SVG de ícones (sem CSS/JS inline)
+├── assets/
+│   ├── css/
+│   │   └── styles.css    # TODO o CSS customizado (organizado por seções numeradas)
+│   └── js/
+│       ├── tailwind-config.js  # Paleta floresta do Tailwind CDN
+│       └── app.js              # Toda a lógica do chat (organizada por seções numeradas)
+├── README.md             # Este arquivo (contexto para IAs e humanos)
+└── .git/                 # Repositório git local
 ```
 
-> ⚠️ **Regra de ouro para IAs:** toda mudança visual ou funcional deve ser feita **somente em `index.html`**, mantendo a arquitetura single-file, salvo se o usuário pedir explicitamente outro arquivo.
+> ⚠️ **Regra de ouro para IAs:** respeite a separação — estilo vai em `assets/css/styles.css`, lógica em `assets/js/app.js`, markup em `index.html`. O sprite SVG de ícones fica inline no `index.html` de propósito (funciona via `file://`, sem servidor).
 
 ---
 
@@ -91,7 +97,7 @@ Toda cor da UI deriva estritamente destes 4 HEX. Não introduzir azul/roxo/verde
 - 5 `.blob-bg` (divs circulares com `filter: blur(90px)`, `opacity: 0.55`, animação `blob 20s infinite`): cores `rgba(71,138,63,0.5)`, `rgba(55,87,52,0.7)`, `rgba(139,227,129,0.35)`, `rgba(71,138,63,0.4)`, `rgba(120,125,120,0.35)`.
 - Overlay de ruído SVG sutil (`opacity-5`) para textura.
 
-### 5.2. Glassmorphism (classes customizadas no `<style>`)
+### 5.2. Glassmorphism (classes customizadas em `assets/css/styles.css`)
 
 - `.glass` → `background: rgba(55,87,52,0.35)` + `backdrop-filter: blur(12px)` + `border: 1px solid rgba(139,227,129,0.25)`.
 - `.glass-strong` → `background: rgba(55,87,52,0.55)` + `blur(12px)` + `border: rgba(139,227,129,0.35)` + sombra dupla (externa preta + brilho interno verde).
@@ -144,7 +150,7 @@ Toda cor da UI deriva estritamente destes 4 HEX. Não introduzir azul/roxo/verde
 
 ## 7. Lógica JavaScript (referência exata para IAs)
 
-Todo o JS está no `<script>` final do `index.html`. Funções e IDs:
+Todo o JS está em `assets/js/app.js`. Funções e IDs:
 
 | Símbolo | Tipo | Papel |
 |---|---|---|
@@ -201,7 +207,7 @@ Todo o JS está no `<script>` final do `index.html`. Funções e IDs:
 
 ## 10. Convenções para Futuras Alterações (instruções diretas à IA)
 
-1. **Single-file obrigatório**: não criar `.css`/`.js` separados sem pedido explícito.
+1. **Separação respeitada**: CSS só em `assets/css/styles.css`, JS só em `assets/js/app.js`, config do Tailwind só em `assets/js/tailwind-config.js`. Nada de `<style>` ou `<script>` inline no HTML.
 2. **PT-BR sempre**: nenhum texto de UI em inglês. Placeholders, `aria-labels`, timestamps (`pt-BR`) e respostas do bot em português.
 3. **Paleta fechada**: usar só os 4 HEX da Seção 5 (via `rgba()` quando precisar de transparência). Não reintroduzir azul/roxo do protótipo antigo.
 4. **Preservar o mock** até a integração real: manter `processMessage`, `Digitando...` e prefixo `Você disse: `, a menos que o usuário peça a troca pela API.

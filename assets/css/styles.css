@@ -1,0 +1,227 @@
+/* ==========================================================================
+   Guia Virtual de Sacramento - MG
+   Folha de estilos principal
+   Paleta floresta: #478a3f (primary) · #375734 (dark) ·
+                    #8be381 (bright) · #787d78 (muted)
+   ========================================================================== */
+
+/* ---- 1. Tokens ---------------------------------------------------------- */
+:root {
+    --forest-primary: #478a3f;
+    --forest-dark: #375734;
+    --forest-bright: #8be381;
+    --forest-muted: #787d78;
+}
+
+/* ---- 2. Base / layout mobile (página nunca rola) ------------------------ */
+html, body { height: 100%; }
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background-color: #1e2e1d;
+    /* Só a área de mensagens tem scroll; o resto é fixo */
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+}
+
+main { height: 100vh; height: 100dvh; }
+
+/* Respeita a área segura (notch / gestos) no rodapé */
+.safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* ---- 3. Ícones SVG ------------------------------------------------------ */
+.icon { width: 1.1em; height: 1.1em; flex-shrink: 0; }
+.icon-lg { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
+
+/* ---- 4. Animações ------------------------------------------------------- */
+@keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ---- 5. Fundo ambiente -------------------------------------------------- */
+.animated-gradient {
+    background: linear-gradient(-45deg, #1a2b1a, #375734, #2a4a28, #478a3f, #1a2b1a);
+    background-size: 400% 400%;
+    animation: gradient-shift 16s ease infinite;
+}
+
+.blob-bg {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.55;
+    animation: blob 20s infinite ease-in-out;
+}
+
+/* ---- 6. Glassmorphism --------------------------------------------------- */
+.glass {
+    background: rgba(55, 87, 52, 0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(139, 227, 129, 0.25);
+}
+
+.glass-strong {
+    background: rgba(55, 87, 52, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(139, 227, 129, 0.35);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(139, 227, 129, 0.15);
+}
+
+.glass-input {
+    background: rgba(55, 87, 52, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(120, 125, 120, 0.5);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.glass-input:focus {
+    background: rgba(55, 87, 52, 0.65);
+    border-color: rgba(139, 227, 129, 0.7);
+    box-shadow: 0 0 0 3px rgba(71, 138, 63, 0.35), 0 0 18px rgba(139, 227, 129, 0.25);
+}
+
+/* ---- 7. Bolhas de mensagem ---------------------------------------------- */
+.bubble-guide {
+    background: rgba(55, 87, 52, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(139, 227, 129, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(139, 227, 129, 0.12);
+}
+
+.bubble-user {
+    background: rgba(71, 138, 63, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(139, 227, 129, 0.5);
+    box-shadow: 0 4px 20px rgba(71, 138, 63, 0.35), inset 0 1px 0 rgba(139, 227, 129, 0.25);
+}
+
+.message-bubble { animation: slideUp 0.3s ease-out; }
+
+/* Quebra palavras longas p/ nunca estourar a borda do dispositivo */
+.bubble-text {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.typing-indicator span {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--forest-bright);
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: typing 1.4s infinite ease-in-out;
+}
+.typing-indicator span:nth-child(1) { animation-delay: 0s; }
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+/* ---- 8. Atalhos rápidos ------------------------------------------------- */
+.btn-shortcut { transition: all 0.3s ease; flex-shrink: 0; }
+.btn-shortcut:hover {
+    transform: translateY(-2px);
+    background: rgba(71, 138, 63, 0.5);
+    border-color: rgba(139, 227, 129, 0.6);
+    box-shadow: 0 0 0 1px rgba(139, 227, 129, 0.6), 0 4px 12px rgba(71, 138, 63, 0.4), 0 0 8px rgba(139, 227, 129, 0.2);
+    position: relative;
+    z-index: 1;
+}
+.btn-shortcut:active { transform: translateY(0) scale(0.98); }
+
+#shortcutsContainer {
+    padding-top: 12px;
+    margin-top: -8px;
+    padding-bottom: 14px;
+    margin-bottom: -10px;
+    padding-left: 4px;
+    padding-right: 4px;
+    --fade-l: 0;
+    --fade-r: 1;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black calc(var(--fade-l) * 32px), black calc(100% - var(--fade-r) * 32px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black calc(var(--fade-l) * 32px), black calc(100% - var(--fade-r) * 32px), transparent 100%);
+}
+
+/* ---- 9. Entrada de texto ------------------------------------------------ */
+.send-btn {
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    background: rgba(71, 138, 63, 0.6);
+    border: 1px solid rgba(139, 227, 129, 0.5);
+    box-sizing: border-box;
+}
+.send-btn:hover {
+    transform: scale(1.05);
+    background: rgba(71, 138, 63, 0.85);
+    box-shadow: 0 8px 25px rgba(71, 138, 63, 0.55), 0 0 16px rgba(139, 227, 129, 0.45);
+}
+.send-btn:active { transform: scale(0.95); }
+.send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+#messageInput {
+    resize: none;
+    overflow-y: hidden;
+    width: 100%;
+    max-width: 100%;
+    height: 52px;
+    min-height: 52px;
+    max-height: 150px;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+/* 16px no mobile evita o zoom automático do iOS ao focar */
+@media (max-width: 639px) {
+    #messageInput { font-size: 16px; }
+}
+
+/* ---- 10. Scrollbars ----------------------------------------------------- */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgba(55, 87, 52, 0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: rgba(139, 227, 129, 0.35); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(139, 227, 129, 0.55); }
+
+.chat-scroll { scrollbar-width: thin; scrollbar-color: rgba(139,227,129,0.35) rgba(55,87,52,0.3); }
+
+/* ---- 11. Acessibilidade ------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
