@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
     <title>Guia Virtual de Sacramento - MG</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
             theme: {
@@ -23,6 +22,23 @@
         }
     </script>
     <style>
+        html, body { height: 100%; }
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            /* A página nunca rola: só a área de mensagens tem scroll */
+            overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
+        }
+        main { height: 100vh; height: 100dvh; }
+
+        /* Respeita a área segura (notch / gestos) no rodapé */
+        .safe-bottom {
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+        .icon { width: 1.1em; height: 1.1em; flex-shrink: 0; }
+        .icon-lg { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
         :root {
             --forest-primary: #478a3f;
             --forest-dark: #375734;
@@ -57,27 +73,8 @@
             30% { transform: translateY(-6px); opacity: 1; }
         }
 
-        html, body {
-            height: 100%;
-        }
-
         body {
             background-color: #1e2e1d;
-            /* A página nunca rola: só a área de mensagens tem scroll */
-            overflow: hidden;
-            overscroll-behavior: none;
-            -webkit-text-size-adjust: 100%;
-        }
-
-        /* Altura dinâmica: acompanha teclado virtual e barras do navegador mobile */
-        .app-shell {
-            height: 100vh; /* fallback para navegadores antigos */
-            height: 100dvh;
-        }
-
-        /* Respeita a área segura (notch / gestos) no rodapé */
-        .safe-bottom {
-            padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
         }
 
         .animated-gradient {
@@ -94,7 +91,6 @@
             animation: blob 20s infinite ease-in-out;
         }
 
-        /* ---- Glassmorphism com tons de #375734 ---- */
         .glass {
             background: rgba(55, 87, 52, 0.35);
             backdrop-filter: blur(12px);
@@ -124,7 +120,6 @@
             box-shadow: 0 0 0 3px rgba(71, 138, 63, 0.35), 0 0 18px rgba(139, 227, 129, 0.25);
         }
 
-        /* ---- Bolhas ---- */
         .bubble-guide {
             background: rgba(55, 87, 52, 0.6);
             backdrop-filter: blur(12px);
@@ -155,19 +150,42 @@
         .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
         .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
 
-        .btn-shortcut { transition: all 0.3s ease; }
+        .btn-shortcut { transition: all 0.3s ease; flex-shrink: 0; }
         .btn-shortcut:hover {
             transform: translateY(-2px);
             background: rgba(71, 138, 63, 0.5);
             border-color: rgba(139, 227, 129, 0.6);
-            box-shadow: 0 10px 30px rgba(71, 138, 63, 0.45), 0 0 14px rgba(139, 227, 129, 0.25);
+            box-shadow: 0 0 0 1px rgba(139, 227, 129, 0.6), 0 4px 12px rgba(71, 138, 63, 0.4), 0 0 8px rgba(139, 227, 129, 0.2);
+            position: relative;
+            z-index: 1;
         }
         .btn-shortcut:active { transform: translateY(0) scale(0.98); }
 
+        #shortcutsContainer {
+            padding-top: 12px;
+            margin-top: -8px;
+            padding-bottom: 14px;
+            margin-bottom: -10px;
+            padding-left: 4px;
+            padding-right: 4px;
+            --fade-l: 0;
+            --fade-r: 1;
+            -webkit-mask-image: linear-gradient(to right, transparent 0, black calc(var(--fade-l) * 32px), black calc(100% - var(--fade-r) * 32px), transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, black calc(var(--fade-l) * 32px), black calc(100% - var(--fade-r) * 32px), transparent 100%);
+        }
+
         .send-btn {
+            width: 52px;
+            height: 52px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
             transition: all 0.3s ease;
             background: rgba(71, 138, 63, 0.6);
             border: 1px solid rgba(139, 227, 129, 0.5);
+            box-sizing: border-box;
         }
         .send-btn:hover {
             transform: scale(1.05);
@@ -179,16 +197,16 @@
 
         .status-dot { animation: pulse-glow 2s ease-in-out infinite; background-color: var(--forest-bright); }
 
-        /* Textarea auto-expansível */
         #messageInput {
             resize: none;
-            overflow-y: auto;
+            overflow-y: hidden;
             width: 100%;
             max-width: 100%;
-            box-sizing: border-box;
+            height: 52px;
             min-height: 52px;
             max-height: 150px;
             line-height: 1.5;
+            box-sizing: border-box;
         }
 
         /* 16px no mobile evita o zoom automático do iOS ao focar */
@@ -222,7 +240,32 @@
     </style>
 </head>
 <body class="animated-gradient relative overflow-hidden w-full max-w-full">
-    <!-- Blobs de fundo na paleta floresta -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true">
+        <defs>
+            <symbol id="i-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+            </symbol>
+            <symbol id="i-mountain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
+            </symbol>
+            <symbol id="i-landmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/>
+            </symbol>
+            <symbol id="i-waves" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+            </symbol>
+            <symbol id="i-utensils" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+            </symbol>
+            <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
+            </symbol>
+            <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </symbol>
+        </defs>
+    </svg>
     <div class="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
         <div class="blob-bg w-96 h-96 top-1/4 left-1/4" style="background: rgba(71,138,63,0.5); animation-delay: 0s;"></div>
         <div class="blob-bg w-72 h-72 top-1/2 right-1/4" style="background: rgba(55,87,52,0.7); animation-delay: -5s;"></div>
@@ -233,62 +276,54 @@
 
     <div class="fixed inset-0 pointer-events-none z-0 opacity-5" aria-hidden="true" style="background-image: url('data:image/svg+xml,<svg viewBox=\"0 0 256 256\" xmlns=\"http://www.w3.org/2000/svg\"><filter id=\"noise\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" stitchTiles=\"stitch\"/></filter><rect width=\"100%\" height=\"100%\" filter=\"url(%23noise)\"/></svg>');"></div>
 
-    <main class="relative z-10 flex flex-col overflow-hidden app-shell w-full max-w-full">
-        <!-- Cabeçalho -->
-        <header class="glass-strong px-4 py-3 sm:px-6 lg:px-8 rounded-b-3xl flex-shrink-0 w-full">
+    <main class="relative z-10 flex flex-col overflow-hidden w-full max-w-full">
+        <div class="px-4 pt-4 sm:px-6 lg:px-8 sm:pt-5 flex-shrink-0">
+            <header class="glass-strong max-w-2xl mx-auto px-4 py-4 sm:px-6 rounded-3xl">
             <div class="max-w-2xl mx-auto w-full min-w-0">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div class="text-center sm:text-left">
-                        <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight">
-                            <i class="fas fa-leaf mr-2" style="color: #8be381;"></i>
+                        <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight flex items-center justify-center sm:justify-start gap-2">
+                            <svg class="icon-lg" style="color: #8be381;"><use href="#i-leaf"/></svg>
                             Guia Virtual de Sacramento
                         </h1>
                         <p class="text-sm sm:text-base mt-1" style="color: rgba(139,227,129,0.8);">Seu assistente local em Sacramento - MG</p>
                     </div>
-                    <div class="flex items-center gap-3 justify-center sm:justify-end">
-                        <div class="flex items-center gap-2 glass px-3 py-1.5 rounded-full shadow-lg">
-                            <span class="status-dot w-2.5 h-2.5 rounded-full"></span>
-                            <span class="text-xs sm:text-sm font-medium text-white">Online</span>
-                        </div>
-                    </div>
                 </div>
-            </div>
-        </header>
+            </header>
+        </div>
 
-        <!-- Atalhos rápidos -->
-        <section class="px-4 py-2 sm:px-6 lg:px-8 flex-shrink-0 w-full">
+        <section class="px-4 py-3 sm:px-6 lg:px-8 flex-shrink-0">
             <div class="max-w-2xl mx-auto w-full min-w-0">
                 <div class="glass-strong rounded-2xl p-4 shadow-xl">
                     <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color: rgba(139,227,129,0.7);">Atalhos rápidos</p>
-                    <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" id="shortcutsContainer">
+                    <div class="flex gap-3 overflow-x-auto scrollbar-hide" id="shortcutsContainer">
                         <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Gruta dos Palhares">
-                            <i class="fas fa-mountain" style="color: #8be381;"></i>
-                            <span>📍 Gruta dos Palhares</span>
+                            <svg class="icon" style="color: #8be381;"><use href="#i-mountain"/></svg>
+                            <span>Gruta dos Palhares</span>
                         </button>
                         <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Povoado do Desemboque">
-                            <i class="fas fa-landmark" style="color: #8be381;"></i>
-                            <span>📜 Povoado do Desemboque</span>
+                            <svg class="icon" style="color: #8be381;"><use href="#i-landmark"/></svg>
+                            <span>Povoado do Desemboque</span>
                         </button>
                         <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Cachoeiras e Trilhas">
-                            <i class="fas fa-water" style="color: #8be381;"></i>
-                            <span>🏞️ Cachoeiras e Trilhas</span>
+                            <svg class="icon" style="color: #8be381;"><use href="#i-waves"/></svg>
+                            <span>Cachoeiras e Trilhas</span>
                         </button>
                         <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Onde Comer e Hospedar">
-                            <i class="fas fa-utensils" style="color: #8be381;"></i>
-                            <span>☕ Onde Comer e Hospedar</span>
+                            <svg class="icon" style="color: #8be381;"><use href="#i-utensils"/></svg>
+                            <span>Onde Comer e Hospedar</span>
                         </button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Área de chat -->
-        <section class="flex-1 min-h-0 px-3 py-2 sm:px-6 lg:px-8 overflow-hidden w-full">
-            <div class="max-w-2xl mx-auto w-full glass-strong rounded-3xl shadow-2xl flex flex-col overflow-hidden h-full min-h-0">
+        <section class="flex-1 min-h-0 px-4 py-3 sm:px-6 lg:px-8 overflow-hidden">
+            <div class="max-w-2xl mx-auto glass-strong rounded-3xl shadow-2xl flex flex-col overflow-hidden h-full" style="min-height: 0;">
                 <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 chat-scroll" id="messagesContainer" role="log" aria-live="polite" aria-label="Conversa com o guia">
                     <div class="message-bubble flex items-start gap-3" data-sender="guide">
                         <div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">
-                            <i class="fas fa-leaf text-lg" style="color: #8be381;"></i>
+                            <svg class="icon-lg" style="color: #8be381;"><use href="#i-leaf"/></svg>
                         </div>
                         <div class="bubble-guide px-4 py-3 rounded-2xl rounded-tl-sm max-w-[85%] min-w-0">
                             <p class="bubble-text text-white text-sm sm:text-base leading-relaxed">Bem-vindo a Sacramento! Como posso ajudar você hoje?</p>
@@ -299,7 +334,7 @@
 
                 <div id="typingIndicator" class="hidden px-4 pb-4 items-start gap-3" data-sender="guide">
                     <div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">
-                        <i class="fas fa-leaf text-lg" style="color: #8be381;"></i>
+                        <svg class="icon-lg" style="color: #8be381;"><use href="#i-leaf"/></svg>
                     </div>
                     <div class="bubble-guide px-4 py-3 rounded-2xl rounded-tl-sm">
                         <p class="text-xs mb-1" style="color: rgba(139,227,129,0.7);">Digitando...</p>
@@ -311,8 +346,7 @@
             </div>
         </section>
 
-        <!-- Barra de entrada com textarea expansível -->
-        <section class="px-3 pt-2 sm:px-6 lg:px-8 flex-shrink-0 w-full safe-bottom">
+        <section class="px-4 pt-2 sm:px-6 lg:px-8 flex-shrink-0 w-full safe-bottom">
             <div class="max-w-2xl mx-auto w-full min-w-0">
                 <div class="glass-strong rounded-2xl shadow-xl p-3">
                     <form id="chatForm" class="flex items-end gap-3" onsubmit="return false;">
@@ -331,14 +365,13 @@
                         <button
                             type="submit"
                             id="sendBtn"
-                            class="send-btn p-3.5 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0"
-                            style="min-width: 52px; min-height: 52px;"
+                            class="send-btn rounded-2xl shadow-lg"
                             aria-label="Enviar mensagem"
                         >
-                            <i class="fas fa-paper-plane text-white text-lg"></i>
+                            <svg class="icon-lg text-white" style="color: #ffffff;"><use href="#i-send"/></svg>
                         </button>
                     </form>
-                    <p class="text-xs mt-2 px-1" style="color: rgba(120,125,120,0.9);">Pressione <strong>Enter</strong> para enviar e <strong>Shift + Enter</strong> para quebrar linha.</p>
+                    <p class="text-xs mt-2 px-1" style="color: rgba(220,235,220,0.85);">Pressione <strong>Enter</strong> para enviar e <strong>Shift + Enter</strong> para quebrar linha.</p>
                 </div>
             </div>
         </section>
@@ -350,7 +383,19 @@
         const sendBtn = document.getElementById('sendBtn');
         const chatForm = document.getElementById('chatForm');
         const typingIndicator = document.getElementById('typingIndicator');
+        const shortcutsContainer = document.getElementById('shortcutsContainer');
         const shortcutButtons = document.querySelectorAll('.btn-shortcut');
+
+        function updateShortcutsFade() {
+            const maxScroll = shortcutsContainer.scrollWidth - shortcutsContainer.clientWidth;
+            const x = shortcutsContainer.scrollLeft;
+            shortcutsContainer.style.setProperty('--fade-l', x > 4 ? '1' : '0');
+            shortcutsContainer.style.setProperty('--fade-r', x < maxScroll - 4 ? '1' : '0');
+        }
+
+        shortcutsContainer.addEventListener('scroll', updateShortcutsFade, { passive: true });
+        window.addEventListener('resize', updateShortcutsFade);
+        updateShortcutsFade();
 
         let isProcessing = false;
 
@@ -379,8 +424,9 @@
         }
 
         function autoResizeTextarea() {
-            messageInput.style.height = 'auto';
-            messageInput.style.height = Math.min(messageInput.scrollHeight, 150) + 'px';
+            messageInput.style.height = '52px';
+            const target = Math.min(messageInput.scrollHeight, 150);
+            messageInput.style.height = target + 'px';
             messageInput.style.overflowY = messageInput.scrollHeight > 150 ? 'auto' : 'hidden';
         }
 
@@ -391,11 +437,11 @@
             wrapper.dataset.sender = sender;
 
             const bubbleClass = isUser ? 'bubble-user rounded-tr-sm' : 'bubble-guide rounded-tl-sm';
-            const icon = isUser ? 'fa-user' : 'fa-leaf';
+            const icon = isUser ? 'i-user' : 'i-leaf';
 
             wrapper.innerHTML =
                 '<div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">' +
-                    '<i class="fas ' + icon + ' text-lg" style="color: #8be381;"></i>' +
+                    '<svg class="icon-lg" style="color: #8be381;"><use href="#' + icon + '"/></svg>' +
                 '</div>' +
                 '<div class="' + bubbleClass + ' px-4 py-3 rounded-2xl max-w-[85%] min-w-0">' +
                     '<p class="bubble-text text-white text-sm sm:text-base leading-relaxed" style="white-space: pre-wrap;' + (isUser ? ' text-align: right;' : '') + '">' + escapeHtml(text) + '</p>' +
@@ -462,7 +508,6 @@
             });
         });
 
-        // Enter envia, Shift+Enter quebra linha
         messageInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
