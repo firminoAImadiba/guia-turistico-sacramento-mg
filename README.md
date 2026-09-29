@@ -26,23 +26,23 @@ O projeto é um **protótipo frontend funcional**, sem backend e sem integraçã
 
 ### 2.1. O que já funciona
 
-1. Interface completa em `index.html`: cabeçalho, atalhos rápidos, área de chat, barra de entrada.
-2. **Chatbot mock (eco)**: o JS captura o texto do usuário, exibe como bolha de usuário, mostra estado `Digitando...` por ~500 ms e responde com `Você disse: <mensagem>`.
-3. **Botões de atalho** que enviam perguntas pré-definidas e disparam o mesmo fluxo de eco.
+1. Interface completa: cabeçalho, atalhos rápidos, área de chat, barra de entrada (arquivos separados em `index.html` + `assets/`).
+2. **Respostas automáticas (base de conhecimento)**: o JS captura o texto, exibe como bolha de usuário, mostra `Digitando...` (~500 ms) e responde com uma das **5 respostas temáticas** via `findAnswer()` — com normalização que **ignora maiúsculas/minúsculas e acentos** (`normalizeText()`). Texto sem correspondência recebe a **resposta padrão de ajuda** (`FALLBACK_ANSWER`), que lista os 5 temas.
+3. **Botões de atalho** que enviam perguntas pré-definidas e disparam o mesmo fluxo (3 atalhos caem nos temas; `Onde Comer e Hospedar` cai no fallback — não há tema de gastronomia cadastrado).
 4. **Textarea autoexpansível**: cresce até `max-height: 150px`, depois ativa scroll interno; `Enter` envia, `Shift + Enter` quebra linha.
 5. Estética **Liquid Glass / Glassmorphism** sobre fundo verde-floresta animado com blobs.
 
 ### 2.2. O que NÃO existe ainda (limitações conhecidas)
 
-- ❌ Nenhuma chamada a API de IA (OpenAI, Gemini, etc.).
+- ❌ Nenhuma chamada a API de IA (OpenAI, Gemini, etc.) — decisão low budget: respostas 100% locais.
 - ❌ Nenhum backend, banco de dados ou persistência (histórico some ao recarregar).
-- ❌ Nenhuma base de conhecimento real sobre os pontos turísticos (respostas são só eco).
-- ❌ Sem sistema de build, testes automatizados ou dependências locais — tudo via CDN.
+- ⚠️ Base de conhecimento limitada a **5 temas** com casamento por palavra-chave (sem IA: não entende sinônimos fora da lista nem perguntas compostas de 2 temas — vale o primeiro match na ordem).
+- ❌ Sem sistema de build, testes automatizados ou dependências locais — Tailwind via CDN, resto é arquivo estático.
 
 ### 2.3. Roadmap sugerido (não implementado)
 
 1. Conectar a uma API de IA com system prompt de guia local de Sacramento.
-2. Criar base de conhecimento PT-BR (Gruta dos Palhares, Desemboque, cachoeiras, gastronomia, hospedagem).
+2. Expandir a base de conhecimento PT-BR (hoje: 5 temas; faltam gastronomia e hospedagem).
 3. Persistir histórico em `localStorage`.
 4. Adicionar páginas/seções de pontos turísticos (cards com fotos).
 5. Modo offline/PWA e acessibilidade avançada.
@@ -73,9 +73,9 @@ guia-turistico-sacramento-mg/
 | Camada | Tecnologia | Detalhe |
 |---|---|---|
 | Estrutura | HTML5 semântico | `lang="pt-BR"`, landmarks `header`/`main`/`section`, `role="log"` + `aria-live="polite"` na área de mensagens |
-| Estilo | **Tailwind CSS via CDN** (`https://cdn.tailwindcss.com`) | Config estendida inline com `tailwind.config` mapeando a paleta floresta |
-| Ícones | **FontAwesome 6.4 via CDN** | Ícones `fa-leaf`, `fa-mountain`, `fa-landmark`, `fa-water`, `fa-utensils`, `fa-user`, `fa-paper-plane` |
-| Lógica | JavaScript vanilla em `<script>` no fim do `<body>` | Sem frameworks, sem módulos, sem bundler |
+| Estilo | **Tailwind CSS via CDN** (`https://cdn.tailwindcss.com`) | Config em `assets/js/tailwind-config.js` mapeando a paleta floresta + custom em `assets/css/styles.css` |
+| Ícones | **Sprite SVG inline** (estilo Lucide, sem CDN) | Símbolos `i-leaf`, `i-mountain`, `i-landmark`, `i-waves`, `i-utensils`, `i-send`, `i-user` — funciona até via `file://` |
+| Lógica | JavaScript vanilla em `assets/js/app.js` | Sem frameworks, sem módulos, sem bundler |
 | Fontes | System fonts (padrão Tailwind) | Nenhuma fonte externa carregada |
 
 ---
@@ -162,13 +162,17 @@ Todo o JS está em `assets/js/app.js`. Funções e IDs:
 | `.btn-shortcut` | DOM (4x) | Atalhos; texto em `dataset.message` |
 | `isProcessing` | `boolean` | Trava de concorrência — impede envios duplos |
 | `scrollToBottom()` | fn | `scrollTo({top: scrollHeight, behavior:'smooth'})` |
+| `KNOWLEDGE_BASE` | array (5 entradas) | Cada entrada: `{id, keywords[], answer}` — ordem de avaliação: gruta → desemboque → centro → cachoeiras → cultura |
+| `FALLBACK_ANSWER` | string | Resposta padrão "não entendi" + lista dos 5 temas |
+| `normalizeText(text)` | fn | `toLowerCase` + `normalize('NFD')` sem diacríticos + troca pontuação por espaço — torna o match insensível a caixa/alento/acentos |
+| `findAnswer(userText)` | fn | Retorna a 1ª resposta cuja palavra-chave aparece no texto normalizado; senão, `FALLBACK_ANSWER` |
 | `formatTime()` | fn | `toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})` |
 | `escapeHtml(text)` | fn | Sanitiza via `textContent` e converte `\n` em `<br>` (anti-XSS) |
 | `autoResizeTextarea()` | fn | `height:auto` → `min(scrollHeight,150px)`; `overflowY` auto só acima de 150px |
 | `createMessageElement(text,sender)` | fn | Monta bolha; `sender` ∈ `{'user','guide'}` |
 | `addMessage(text,sender)` | fn | Anexa bolha + scroll |
 | `showTyping()` / `hideTyping()` | fn | Alterna indicador |
-| `processMessage(userText)` | `async` fn | **FLUXO CORE**: trava → desabilita input → `addMessage(user)` → limpa + redimensiona → `showTyping` → `await 500ms` → `hideTyping` → `addMessage('Você disse: '+userText,'guide')` → reabilita + foca |
+| `processMessage(userText)` | `async` fn | **FLUXO CORE**: trava → desabilita input → `addMessage(user)` → limpa + redimensiona → `showTyping` → `await 500ms` → `hideTyping` → `addMessage(findAnswer(userText),'guide')` → reabilita + `blur` (mobile) / foca (desktop) |
 
 ### Eventos ligados
 
@@ -188,20 +192,22 @@ Todo o JS está em `assets/js/app.js`. Funções e IDs:
    python -m http.server 8000
    # abra http://localhost:8000/index.html
    ```
-3. Requer internet (CDNs do Tailwind e FontAwesome). Sem internet, o layout quebra — isso é esperado no protótipo.
+3. Requer internet (CDN do Tailwind). Sem internet, o layout quebra — isso é esperado no protótipo.
 
 ---
 
 ## 9. Como Testar Manualmente (checklist PT-BR)
 
 - [ ] Mensagem inicial do guia aparece em PT-BR.
-- [ ] Digitar `Olá` + Enter → bolha do usuário `Olá` → `Digitando...` (~500 ms) → bolha do guia `Você disse: Olá`.
+- [ ] Digitar `Fale sobre a Gruta dos Palhares` → resposta da Gruta (distância, pórtico 22m, R$ 10).
+- [ ] Digitar `QUAL A HISTÓRIA DO POVOADO DO DESEMBOQUE?` (tudo maiúsculo) → resposta do Desemboque.
+- [ ] Digitar `cachoeiras` / `museu` / `basilica` (sem acento) → respostas de cachoeiras / cultura / centro.
+- [ ] Digitar `oi, tudo bem?` ou `Onde Comer e Hospedar` → resposta padrão "Desculpe, não entendi..." listando os 5 temas.
 - [ ] `Shift+Enter` insere nova linha sem enviar; quebras de linha aparecem na bolha (via `<br>`).
 - [ ] Textarea cresce ao digitar e limita em 150px com scroll interno.
-- [ ] Cada um dos 4 atalhos envia o texto correto (sem emoji) e recebe o eco.
+- [ ] Os 3 atalhos temáticos respondem o tema certo; o de gastronomia cai no fallback.
 - [ ] Duplo-Enter rápido não duplica mensagens (trava `isProcessing`).
 - [ ] Layout mobile (320px) sem scroll horizontal; atalhos com scroll lateral.
-- [ ] Indicador `Online` pulsando em verde `#8be381`.
 
 ---
 
@@ -210,7 +216,7 @@ Todo o JS está em `assets/js/app.js`. Funções e IDs:
 1. **Separação respeitada**: CSS só em `assets/css/styles.css`, JS só em `assets/js/app.js`, config do Tailwind só em `assets/js/tailwind-config.js`. Nada de `<style>` ou `<script>` inline no HTML.
 2. **PT-BR sempre**: nenhum texto de UI em inglês. Placeholders, `aria-labels`, timestamps (`pt-BR`) e respostas do bot em português.
 3. **Paleta fechada**: usar só os 4 HEX da Seção 5 (via `rgba()` quando precisar de transparência). Não reintroduzir azul/roxo do protótipo antigo.
-4. **Preservar o mock** até a integração real: manter `processMessage`, `Digitando...` e prefixo `Você disse: `, a menos que o usuário peça a troca pela API.
+4. **Preservar a base de conhecimento**: manter `KNOWLEDGE_BASE`, `normalizeText`, `findAnswer` e `FALLBACK_ANSWER`. Novas respostas = nova entrada `{id, keywords[], answer}` (keywords sempre minúsculas e sem acento); a ordem do array define prioridade em caso de empate.
 5. **XSS**: nunca remover `escapeHtml`; todo texto do usuário passa por ele antes do `innerHTML`.
 6. **Acessibilidade**: manter `role="log"`, `aria-live`, `aria-labels`, foco devolvido ao input após resposta e contraste de texto branco sobre verde-escuro.
 7. **Responsivo primeiro**: testar em 360px; novos componentes devem usar classes Tailwind responsivas (`sm:`, `lg:`).
@@ -221,7 +227,7 @@ Todo o JS está em `assets/js/app.js`. Funções e IDs:
 
 ## 11. Integração Futura com IA (guia, ainda não implementado)
 
-Quando os autores pedirem a IA real, o ponto de troca é **somente** a função `processMessage`: substituir o bloco do eco por `fetch` a uma API, mantendo `showTyping`/`hideTyping` (aumentar o tempo conforme a latência) e tratamento de erro em PT-BR (ex.: `Desculpe, não consegui responder agora. Tente novamente.`). A chave de API **nunca** deve ser exposta no frontend público — prever um backend proxy ou função serverless antes de publicar.
+Quando os autores pedirem a IA real, o ponto de troca é **somente** a função `findAnswer()`: substituí-la por `fetch` a uma API (mantendo `FALLBACK_ANSWER` para erro de rede), sem mexer no resto do fluxo — `showTyping`/`hideTyping` (aumentar o tempo conforme a latência) e tratamento de erro em PT-BR (ex.: `Desculpe, não consegui responder agora. Tente novamente.`). A chave de API **nunca** deve ser exposta no frontend público — prever um backend proxy ou função serverless antes de publicar.
 
 ---
 
