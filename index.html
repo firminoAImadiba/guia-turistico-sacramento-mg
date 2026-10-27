@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
-    <meta name="description" content="Guia Virtual de Sacramento - MG: seu assistente local para pontos turísticos, cachoeiras, história, gastronomia e hospedagem.">
+    <meta name="description" content="Citypass Sacramento: explore os pontos turísticos da cidade com o assistente.">
     <meta name="theme-color" content="#375734">
-    <title>Guia Virtual de Sacramento - MG</title>
+    <title>Citypass Sacramento</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23478a3f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z'/%3E%3Cpath d='M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12'/%3E%3C/svg%3E">
 
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
@@ -30,14 +30,17 @@
             <symbol id="i-waves" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
             </symbol>
-            <symbol id="i-utensils" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+            <symbol id="i-church" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v4"/><path d="M8 4h8"/><path d="M12 6l7 3v13H5V9l7-3z"/><path d="M9 22v-5h6v5"/>
             </symbol>
-            <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
+            <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
             </symbol>
             <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </symbol>
+            <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/>
             </symbol>
         </defs>
     </svg>
@@ -57,37 +60,51 @@
         <!-- Cabeçalho -->
         <div class="px-4 pt-4 sm:px-6 lg:px-8 sm:pt-5 flex-shrink-0">
             <header class="glass-strong max-w-2xl mx-auto w-full px-4 py-4 sm:px-6 rounded-3xl">
-                <div class="text-center sm:text-left">
-                    <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight flex items-center justify-center sm:justify-start gap-2">
-                        <svg class="icon-lg" style="color: #8be381;"><use href="#i-leaf"/></svg>
-                        Guia Virtual de Sacramento
-                    </h1>
-                    <p class="text-sm sm:text-base mt-1" style="color: rgba(139,227,129,0.8);">Seu assistente local em Sacramento - MG</p>
+                <div class="flex items-center justify-between gap-3">
+                    <div class="text-center sm:text-left">
+                        <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight flex items-center justify-center sm:justify-start gap-2">
+                            <svg class="icon-lg" style="color: #8be381;"><use href="#i-leaf"/></svg>
+                            Citypass Sacramento
+                        </h1>
+                        <p id="headerSub" class="text-sm sm:text-base mt-1" style="color: rgba(139,227,129,0.8);">Seu assistente local em Sacramento - MG</p>
+                    </div>
+                    <div class="glass px-3 py-1.5 rounded-full flex items-center gap-2 flex-shrink-0" aria-label="Status da IA">
+                        <span class="status-dot"></span>
+                        <span class="badge-text text-xs font-semibold text-white">IA online</span>
+                    </div>
                 </div>
             </header>
         </div>
 
-        <!-- Atalhos rápidos -->
-        <section class="px-4 py-3 sm:px-6 lg:px-8 flex-shrink-0" aria-label="Atalhos rápidos">
+        <!-- Temas (atalhos viram seletor de corrente) -->
+        <section class="px-4 py-3 sm:px-6 lg:px-8 flex-shrink-0" aria-label="Temas">
             <div class="max-w-2xl mx-auto w-full min-w-0">
                 <div class="glass-strong rounded-2xl p-4 shadow-xl">
-                    <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color: rgba(139,227,129,0.7);">Atalhos rápidos</p>
+                    <p id="temasLabel" class="text-xs font-semibold uppercase tracking-wider mb-3" style="color: rgba(139,227,129,0.7);">Escolha um tema para explorar</p>
                     <div class="flex gap-3 overflow-x-auto scrollbar-hide" id="shortcutsContainer">
-                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Gruta dos Palhares">
+                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-tema="gruta">
                             <svg class="icon" style="color: #8be381;"><use href="#i-mountain"/></svg>
                             <span>Gruta dos Palhares</span>
                         </button>
-                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Povoado do Desemboque">
+                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-tema="desemboque">
                             <svg class="icon" style="color: #8be381;"><use href="#i-landmark"/></svg>
-                            <span>Povoado do Desemboque</span>
+                            <span>Desemboque</span>
                         </button>
-                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Cachoeiras e Trilhas">
+                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-tema="basilica">
+                            <svg class="icon" style="color: #8be381;"><use href="#i-church"/></svg>
+                            <span>Basílica</span>
+                        </button>
+                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-tema="cachoeiras">
                             <svg class="icon" style="color: #8be381;"><use href="#i-waves"/></svg>
-                            <span>Cachoeiras e Trilhas</span>
+                            <span>Cachoeiras</span>
                         </button>
-                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-message="Onde Comer e Hospedar">
-                            <svg class="icon" style="color: #8be381;"><use href="#i-utensils"/></svg>
-                            <span>Onde Comer e Hospedar</span>
+                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-tema="colegio">
+                            <svg class="icon" style="color: #8be381;"><use href="#i-book"/></svg>
+                            <span>Colégio Allan Kardec</span>
+                        </button>
+                        <button class="btn-shortcut glass px-4 py-2.5 rounded-xl whitespace-nowrap text-sm text-white flex items-center gap-2 shadow-md" data-tema="personalidades">
+                            <svg class="icon" style="color: #8be381;"><use href="#i-user"/></svg>
+                            <span>Personalidades</span>
                         </button>
                     </div>
                 </div>
@@ -97,24 +114,14 @@
         <!-- Área de chat -->
         <section class="flex-1 min-h-0 px-4 py-3 sm:px-6 lg:px-8 overflow-hidden" aria-label="Conversa">
             <div class="max-w-2xl mx-auto w-full glass-strong rounded-3xl shadow-2xl flex flex-col overflow-hidden h-full min-h-0">
-                <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 chat-scroll" id="messagesContainer" role="log" aria-live="polite" aria-label="Conversa com o guia">
-                    <div class="message-bubble flex items-start gap-3" data-sender="guide">
-                        <div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">
-                            <svg class="icon-lg" style="color: #8be381;"><use href="#i-leaf"/></svg>
-                        </div>
-                        <div class="bubble-guide px-4 py-3 rounded-2xl rounded-tl-sm max-w-[85%] min-w-0">
-                            <p class="bubble-text text-white text-sm sm:text-base leading-relaxed">Bem-vindo a Sacramento! Como posso ajudar você hoje?</p>
-                            <span class="text-xs block mt-1 text-right" style="color: rgba(139,227,129,0.6);">Agora mesmo</span>
-                        </div>
-                    </div>
-                </div>
+                <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 chat-scroll" id="messagesContainer" role="log" aria-live="polite" aria-label="Conversa com o guia"></div>
 
                 <div id="typingIndicator" class="hidden px-4 pb-4 items-start gap-3" data-sender="guide">
                     <div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">
                         <svg class="icon-lg" style="color: #8be381;"><use href="#i-leaf"/></svg>
                     </div>
                     <div class="bubble-guide px-4 py-3 rounded-2xl rounded-tl-sm">
-                        <p class="text-xs mb-1" style="color: rgba(139,227,129,0.7);">Digitando...</p>
+                        <p class="ai-phase mb-1" id="typingPhase">Pensando...</p>
                         <div class="typing-indicator flex items-center gap-1">
                             <span></span><span></span><span></span>
                         </div>
@@ -123,37 +130,42 @@
             </div>
         </section>
 
-        <!-- Barra de entrada -->
-        <section class="px-4 pt-2 sm:px-6 lg:px-8 flex-shrink-0 w-full safe-bottom" aria-label="Enviar mensagem">
+        <!-- Opções -->
+        <section id="dockSection" class="hidden px-4 pt-2 sm:px-6 lg:px-8 flex-shrink-0 w-full safe-bottom" aria-label="Opções">
             <div class="max-w-2xl mx-auto w-full min-w-0">
                 <div class="glass-strong rounded-2xl shadow-xl p-3">
-                    <form id="chatForm" class="flex items-end gap-3" onsubmit="return false;">
-                        <div class="flex-1 min-w-0 relative">
-                            <textarea
-                                id="messageInput"
-                                rows="1"
-                                enterkeyhint="send"
-                                placeholder="Digite sua mensagem aqui..."
-                                class="glass-input w-full px-5 py-3.5 rounded-2xl text-white text-sm sm:text-base placeholder:text-white/50 focus:outline-none"
-                                autocomplete="off"
-                                aria-label="Digite sua mensagem"
-                            ></textarea>
-                        </div>
-                        <button
-                            type="submit"
-                            id="sendBtn"
-                            class="send-btn rounded-2xl shadow-lg"
-                            aria-label="Enviar mensagem"
-                        >
-                            <svg class="icon-lg" style="color: #ffffff;"><use href="#i-send"/></svg>
-                        </button>
-                    </form>
-                    <p class="text-xs mt-2 px-1" style="color: rgba(220,235,220,0.85);">Pressione <strong>Enter</strong> para enviar e <strong>Shift + Enter</strong> para quebrar linha.</p>
+                    <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2" role="group" aria-label="Opções de resposta"></div>
                 </div>
             </div>
         </section>
     </main>
 
+    <!-- Tela de boas-vindas -->
+    <div id="welcomeScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Boas-vindas">
+        <div class="glass-strong rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 text-center welcome-card">
+            <div class="w-16 h-16 mx-auto rounded-3xl glass flex items-center justify-center shadow-lg mb-4">
+                <svg class="icon-lg" style="color: #8be381; width: 2rem; height: 2rem;"><use href="#i-leaf"/></svg>
+            </div>
+            <div class="glass inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3">
+                <span class="status-dot"></span>
+                <span class="badge-text text-xs font-semibold text-white">IA online</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-white leading-tight">Citypass Sacramento</h2>
+            <p id="welcomeDesc" class="text-sm sm:text-base mt-2" style="color: rgba(220,235,220,0.9);">Explore a Gruta dos Palhares, o Desemboque, a Basílica, as Cachoeiras, o Colégio Allan Kardec e as Personalidades de Sacramento.</p>
+            <div class="grid grid-cols-2 gap-2 mt-5" id="langGrid" role="group" aria-label="Idioma / Language">
+                <button type="button" class="lang-btn glass px-3 py-3 rounded-xl text-sm font-semibold text-white" data-lang="pt">Português</button>
+                <button type="button" class="lang-btn glass px-3 py-3 rounded-xl text-sm font-semibold text-white" data-lang="en">English</button>
+                <button type="button" class="lang-btn glass px-3 py-3 rounded-xl text-sm font-semibold text-white" data-lang="es">Español</button>
+                <button type="button" class="lang-btn glass px-3 py-3 rounded-xl text-sm font-semibold text-white" data-lang="fr">Français</button>
+            </div>
+            <button id="startBtn" type="button" class="start-btn rounded-2xl shadow-lg mt-4 w-full py-4 text-base font-bold text-white">
+                Começar
+            </button>
+        </div>
+    </div>
+
+    <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/nos-data.js"></script>
     <script src="assets/js/app.js"></script>
 </body>
 </html>

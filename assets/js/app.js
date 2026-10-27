@@ -1,165 +1,280 @@
 /* ==========================================================================
-   Guia Virtual de Sacramento - MG
-   Lógica do chat (mock/eco para protótipo — sem API externa)
+   Citypass Sacramento (versão PÚBLICO)
+   Painel de resposta única + 2 opções.
+   Interface em PT/EN/ES/FR (assets/js/i18n.js). Conteúdo dos 216 nós em PT-BR
+   nos dados e traduzido sob demanda com cache local.
    ========================================================================== */
 'use strict';
 
 /* ---- 1. Referências de DOM ---------------------------------------------- */
 const messagesContainer = document.getElementById('messagesContainer');
-const messageInput = document.getElementById('messageInput');
-const sendBtn = document.getElementById('sendBtn');
-const chatForm = document.getElementById('chatForm');
 const typingIndicator = document.getElementById('typingIndicator');
+const typingPhase = document.getElementById('typingPhase');
 const shortcutsContainer = document.getElementById('shortcutsContainer');
-const shortcutButtons = document.querySelectorAll('.btn-shortcut');
+const shortcutButtons = document.querySelectorAll('[data-tema]');
+const dockSection = document.getElementById('dockSection');
+const optionsContainer = document.getElementById('optionsContainer');
+const welcomeScreen = document.getElementById('welcomeScreen');
+const startBtn = document.getElementById('startBtn');
+const headerSub = document.getElementById('headerSub');
+const temasLabel = document.getElementById('temasLabel');
+const welcomeDesc = document.getElementById('welcomeDesc');
+const badgeTexts = document.querySelectorAll('.badge-text');
+const langButtons = document.querySelectorAll('[data-lang]');
+const metaDesc = document.querySelector('meta[name="description"]');
 
 /* ---- 2. Estado ----------------------------------------------------------- */
-let isProcessing = false;
+let isBusy = false;
+let started = false;
+let current = null; // { tema, num }
+let lang = 'pt';
+try {
+    const saved = localStorage.getItem('citypass_lang');
+    if (saved && STR[saved]) lang = saved;
+} catch (e) { /* sem storage: segue em PT */ }
 
-// Dispositivo com teclado virtual (mobile/tablet)
-const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ---- 3. Atalhos: fade nas bordas conforme a rolagem ---------------------- */
+function T() {
+    return STR[lang] || STR.pt;
+}
+
+/* ---- 3. Atalhos: fade nas bordas ------------------------------------------ */
 function updateShortcutsFade() {
+    if (!shortcutsContainer) return;
     const maxScroll = shortcutsContainer.scrollWidth - shortcutsContainer.clientWidth;
     const x = shortcutsContainer.scrollLeft;
     shortcutsContainer.style.setProperty('--fade-l', x > 4 ? '1' : '0');
     shortcutsContainer.style.setProperty('--fade-r', x < maxScroll - 4 ? '1' : '0');
 }
 
-shortcutsContainer.addEventListener('scroll', updateShortcutsFade, { passive: true });
-window.addEventListener('resize', updateShortcutsFade);
-updateShortcutsFade();
+if (shortcutsContainer) {
+    shortcutsContainer.addEventListener('scroll', updateShortcutsFade, { passive: true });
+    window.addEventListener('resize', updateShortcutsFade);
+    updateShortcutsFade();
+}
 
 /* ---- 4. Utilidades -------------------------------------------------------- */
 function scrollToBottom() {
     messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
 }
 
-function formatTime() {
-    return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-}
-
-// Sanitiza texto do usuário (anti-XSS) preservando quebras de linha
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
-    return div.innerHTML.replace(/\n/g, '<br>');
+    return div.innerHTML;
 }
 
-// Fecha o teclado virtual dispensando o foco do elemento ativo
-function dismissKeyboard() {
-    if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
+function wait(ms) {
+    return new Promise(function (r) { setTimeout(r, ms); });
+}
+
+function getNode(tema, num) {
+    const list = NOS_DATA[tema];
+    if (!list) return null;
+    const key = String(num).padStart(2, '0');
+    for (let i = 0; i < list.length; i++) {
+        if (list[i].num === key) return list[i];
+    }
+    return null;
+}
+
+function temaTitulo(id) {
+    const t = T().temas[id];
+    if (t) return t[0];
+    for (let i = 0; i < TEMAS.length; i++) {
+        if (TEMAS[i].id === id) return TEMAS[i].titulo;
+    }
+    return id;
+}
+
+/* ---- 5. Idioma -------------------------------------------------------------- */
+function applyLang() {
+    const s = T();
+    document.documentElement.lang = s.htmlLang;
+    document.title = s.title;
+    if (metaDesc) metaDesc.setAttribute('content', s.metaDesc);
+    if (headerSub) headerSub.textContent = s.headerSub;
+    if (temasLabel) temasLabel.textContent = s.temasLabel;
+    if (welcomeDesc) welcomeDesc.textContent = s.welcomeDesc;
+    if (startBtn && !started) startBtn.textContent = s.start;
+    badgeTexts.forEach(function (el) { el.textContent = s.badge; });
+    shortcutButtons.forEach(function (btn) {
+        const t = s.temas[btn.dataset.tema];
+        const span = btn.querySelector('span');
+        if (t && span) span.textContent = t[0];
+    });
+    langButtons.forEach(function (btn) {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    const sectionTemas = document.querySelector('section[aria-label="Temas"]');
+    if (sectionTemas) sectionTemas.setAttribute('aria-label', s.ariaTemas);
+    const sectionChat = document.querySelector('section[aria-label="Conversa"], section[aria-label="Answer"], section[aria-label="Respuesta"], section[aria-label="Réponse"]');
+    if (sectionChat) sectionChat.setAttribute('aria-label', s.ariaChat);
+    if (dockSection) dockSection.setAttribute('aria-label', s.ariaOpts);
+    try {
+        localStorage.setItem('citypass_lang', lang);
+    } catch (e) { /* sem storage */ }
+    if (started && !current) renderPlaceholder();
+}
+
+function setLang(next) {
+    if (!STR[next] || next === lang) return;
+    lang = next;
+    applyLang();
+    if (started && current && !isBusy) {
+        isBusy = true;
+        setOptionsEnabled(false);
+        showNodeInternal(current.tema, current.num).then(function () {
+            isBusy = false;
+        });
     }
 }
 
-function autoResizeTextarea() {
-    messageInput.style.height = '52px';
-    const target = Math.min(messageInput.scrollHeight, 150);
-    messageInput.style.height = target + 'px';
-    messageInput.style.overflowY = messageInput.scrollHeight > 150 ? 'auto' : 'hidden';
+/* ---- 6. Tradução sob demanda (com cache) -------------------------------------
+   Interface (botões, títulos, fases) traduzida manualmente em i18n.js.
+   Conteúdo dos nós: MyMemory -> Google (fallback) -> texto original.
+   Cache persistente: o que já foi visto não é traduzido de novo. */
+const mtMemCache = {};
+let mtStore = {};
+try {
+    mtStore = JSON.parse(localStorage.getItem('citypass_mt') || '{}');
+} catch (e) { mtStore = {}; }
+
+function mtSave() {
+    try {
+        const keys = Object.keys(mtStore);
+        if (keys.length > 800) {
+            const keep = {};
+            keys.slice(-800).forEach(function (k) { keep[k] = mtStore[k]; });
+            mtStore = keep;
+        }
+        localStorage.setItem('citypass_mt', JSON.stringify(mtStore));
+    } catch (e) { /* quota: mantém só memória */ }
 }
 
-/* ---- 5. Base de conhecimento (respostas automáticas) ------------------------- */
-// Palavras-chave já normalizadas (minúsculas, sem acento) para comparação.
-const KNOWLEDGE_BASE = [
-    {
-        id: 'gruta',
-        keywords: ['gruta', 'palhares', 'espeleologia', 'caverna', 'arenito'],
-        answer: `A Gruta dos Palhares fica a cerca de 10 a 12 km do centro (Rodovia Antenor Duarte Vilela) e é a maior caverna de arenito Botucatu das Américas. Seu pórtico impressiona com 22 metros de altura e o salão principal comporta até 5.000 pessoas. Possui 450 metros de galerias mapeadas (acesso restrito às galerias fundas por preservação). O parque oferece piscinas de água natural, restaurante, lanchonete e bosque. A taxa de entrada é de aproximadamente R$ 10,00.`
-    },
-    {
-        id: 'desemboque',
-        keywords: ['desemboque', 'povoado', 'desterro', 'rosario', 'casarao', 'queijo', 'galinhada', 'ouro', 'triangulo mineiro'],
-        answer: `O Desemboque fica a 60 km do centro urbano (acesso via Chapadão do Bugre) e é o berço do povoamento do Triângulo Mineiro, surgido por volta de 1766 no ciclo do ouro de aluvião. Destaques: Igreja de Nossa Senhora do Desterro (1743-1754, tombada pelo IEPHA), Igreja do Rosário dos Homens Pretos, Casarão Colonial (1993) e a tradição secular do Queijo Minas Artesanal da Canastra. Em julho, acolhe a tradicional Festa de N. Sra. do Desterro com galinhada dos tropeiros.`
-    },
-    {
-        id: 'centro',
-        keywords: ['centro', 'sede urbana', 'basilica', 'patrocinio', 'colegio', 'allan kardec', 'mangueiras', 'neoclassico'],
-        answer: `No centro urbano destacam-se:
-
-Basílica N. Sra. do Patrocínio: Reconstruída em 1920 em estilo neoclássico, com relógio alemão e título de Basílica Menor pelo Vaticano.
-
-Colégio Allan Kardec: Fundado em 1902 por Eurípedes Barsanulfo, foi a primeira escola de pedagogia espírita do mundo. Hoje abriga o Memorial e o famoso Pátio das Mangueiras.`
-    },
-    {
-        id: 'cachoeiras',
-        keywords: ['cachoeira', 'ecoturismo', 'canastra', 'trilha', 'nascente', 'joao inacio', 'parida', 'azulim', 'amanteigado', 'rapel', 'queda'],
-        answer: `Sacramento possui mais de 220 cachoeiras catalogadas e integra o Circuito da Canastra. Principais destaques:
-• Nascente das Gerais: Queda de 83m com >20 poços naturais (Taxa: R$ 30).
-• João Inácio: Complexo de 3 quedas a 65 km da cidade (Taxa: R$ 10 a R$ 25).
-• Cachoeira da Parida: Em cânion com queda dupla e poço cristalino (Taxa: R$ 25).
-• Azulim: Ideal para rapel e canionismo.
-• Amanteigado: Acesso gratuito.`
-    },
-    {
-        id: 'cultura',
-        keywords: ['personalidade', 'carolina', 'jesus', 'museu', 'coralia', 'lima duarte', 'euripedes', 'barsanulfo', 'bondes', 'cajuru', 'usina', 'telefone', 'escritor'],
-        answer: `Sacramento é terra natal da escritora Carolina Maria de Jesus (nascida em 1914, com acervo de manuscritos na cidade), do educador Eurípedes Barsanulfo e possui forte ligação com o ator Lima Duarte (nascido no Desemboque). O Museu Histórico Corália Venites Maluf guarda o 1º telefone da cidade e a 1ª Constituição Municipal. Outros ícones industriais de 1913 são a Estação dos Bondes (hoje venda de doces e queijos) e a Usina Hidrelétrica Cajuru.`
+function djb2(text) {
+    let h = 5381;
+    for (let i = 0; i < text.length; i++) {
+        h = ((h << 5) + h + text.charCodeAt(i)) >>> 0;
     }
-];
-
-const FALLBACK_ANSWER = `Desculpe, não entendi sua pergunta.
-
-Posso falar sobre:
-• Gruta dos Palhares
-• Desemboque
-• Centro urbano
-• Cachoeiras e ecoturismo
-• Personalidades e museu
-
-Digite uma dessas opções ou toque em um atalho rápido!`;
-
-// Normaliza: minúsculas, sem acentos, sem pontuação — "GRUTA" = "grutá" = "gruta"
-function normalizeText(text) {
-    return text
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
-        .replace(/[^a-z0-9\s]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+    return h.toString(36);
 }
 
-function findAnswer(userText) {
-    const normalized = normalizeText(userText);
-    for (const entry of KNOWLEDGE_BASE) {
-        if (entry.keywords.some(function (kw) { return normalized.includes(kw); })) {
-            return entry.answer;
+function mtGet(key) {
+    if (mtMemCache[key]) return mtMemCache[key];
+    if (mtStore[key]) {
+        mtMemCache[key] = mtStore[key];
+        return mtStore[key];
+    }
+    return null;
+}
+
+function mtPut(key, value) {
+    mtMemCache[key] = value;
+    mtStore[key] = value;
+    mtSave();
+}
+
+async function fetchTimeout(url, ms) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(function () { ctrl.abort(); }, ms);
+    try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        return res;
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+async function mtViaMyMemory(text, target) {
+    const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) +
+        '&langpair=pt|' + encodeURIComponent(target);
+    const res = await fetchTimeout(url, 12000);
+    if (!res.ok) throw new Error('http ' + res.status);
+    const data = await res.json();
+    if (!data || !data.responseData || typeof data.responseData.translatedText !== 'string') {
+        throw new Error('resposta inválida');
+    }
+    if (data.responseStatus !== 200 && data.responseStatus !== '200') throw new Error('status ' + data.responseStatus);
+    return data.responseData.translatedText;
+}
+
+async function mtViaGoogle(text, target) {
+    const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=' +
+        encodeURIComponent(target) + '&dt=t&q=' + encodeURIComponent(text);
+    const res = await fetchTimeout(url, 12000);
+    if (!res.ok) throw new Error('http ' + res.status);
+    const data = await res.json();
+    let out = '';
+    const sentences = data[0] || [];
+    for (let i = 0; i < sentences.length; i++) {
+        if (sentences[i][0]) out += sentences[i][0];
+    }
+    if (!out) throw new Error('vazio');
+    return out;
+}
+
+async function translateChunk(text, target) {
+    const key = target + ':' + djb2(text);
+    const hit = mtGet(key);
+    if (hit) return hit;
+    let out = null;
+    try {
+        out = await mtViaMyMemory(text, target);
+    } catch (e1) {
+        try {
+            out = await mtViaGoogle(text, target);
+        } catch (e2) {
+            out = text;
         }
     }
-    return FALLBACK_ANSWER;
+    mtPut(key, out);
+    return out;
 }
 
-/* ---- 6. Mensagens ---------------------------------------------------------- */
-function createMessageElement(text, sender) {
-    const wrapper = document.createElement('div');
-    const isUser = sender === 'user';
-    wrapper.className = 'message-bubble flex items-start gap-3' + (isUser ? ' flex-row-reverse' : '');
-    wrapper.dataset.sender = sender;
-
-    const bubbleClass = isUser ? 'bubble-user rounded-tr-sm' : 'bubble-guide rounded-tl-sm';
-    const icon = isUser ? 'i-user' : 'i-leaf';
-
-    wrapper.innerHTML =
-        '<div class="w-9 h-9 rounded-2xl glass flex items-center justify-center flex-shrink-0 shadow-lg">' +
-            '<svg class="icon-lg" style="color: #8be381;"><use href="#' + icon + '"/></svg>' +
-        '</div>' +
-        '<div class="' + bubbleClass + ' px-4 py-3 rounded-2xl max-w-[85%] min-w-0">' +
-            '<p class="bubble-text text-white text-sm sm:text-base leading-relaxed" style="white-space: pre-wrap;' + (isUser ? ' text-align: right;' : '') + '">' + escapeHtml(text) + '</p>' +
-            '<span class="text-xs block mt-1 ' + (isUser ? 'text-left' : 'text-right') + '" style="color: rgba(139,227,129,0.6);">' + formatTime() + '</span>' +
-        '</div>';
-    return wrapper;
+function splitChunks(text, maxLen) {
+    // Agrupa parágrafos em pedaços curtos (limite do provedor gratuito).
+    const paras = text.split(/\n+/).map(function (p) { return p.trim(); }).filter(Boolean);
+    const chunks = [];
+    let cur = '';
+    paras.forEach(function (p) {
+        if ((cur + '\n\n' + p).trim().length > maxLen && cur) {
+            chunks.push(cur.trim());
+            cur = p;
+        } else {
+            cur = (cur ? cur + '\n\n' : '') + p;
+        }
+    });
+    if (cur.trim()) chunks.push(cur.trim());
+    return chunks.length ? chunks : [text];
 }
 
-function addMessage(text, sender) {
-    const el = createMessageElement(text, sender);
-    messagesContainer.appendChild(el);
-    scrollToBottom();
-    return el;
+async function translateText(text, target) {
+    const chunks = splitChunks(text, 450);
+    const parts = await Promise.all(chunks.map(function (c) {
+        return translateChunk(c, target);
+    }));
+    return parts.join('\n\n');
 }
 
+async function localizeNode(node) {
+    if (lang === 'pt' || !node) {
+        return {
+            text: node.text,
+            optA: node.optA ? node.optA.label : '',
+            optB: node.optB ? node.optB.label : ''
+        };
+    }
+    const results = await Promise.all([
+        translateText(node.text, lang),
+        translateText(node.optA ? node.optA.label : '', lang),
+        translateText(node.optB ? node.optB.label : '', lang)
+    ]);
+    return { text: results[0], optA: results[1], optB: results[2] };
+}
+
+/* ---- 7. Indicador de geração ----------------------------------------------- */
 function showTyping() {
     typingIndicator.classList.remove('hidden');
     typingIndicator.classList.add('flex');
@@ -171,67 +286,151 @@ function hideTyping() {
     typingIndicator.classList.remove('flex');
 }
 
-/* ---- 7. Fluxo principal (resposta automática) --------------------------------- */
-async function processMessage(userText) {
-    if (isProcessing || !userText.trim()) return;
-    isProcessing = true;
-
-    messageInput.disabled = true;
-    sendBtn.disabled = true;
-
-    addMessage(userText, 'user');
-
-    messageInput.value = '';
-    autoResizeTextarea();
-
+async function aiThink(textLen) {
     showTyping();
-    await new Promise(function (r) { setTimeout(r, 500); });
-    hideTyping();
-
-    addMessage(findAnswer(userText), 'guide');
-
-    messageInput.disabled = false;
-    sendBtn.disabled = false;
-    // No mobile fecha o teclado após enviar; no desktop mantém o foco
-    if (isTouchDevice) {
-        dismissKeyboard();
-    } else {
-        messageInput.focus();
+    const phases = T().think;
+    const base = Math.min(500 + textLen * 0.3, 1700);
+    const step = base / phases.length;
+    for (let i = 0; i < phases.length; i++) {
+        typingPhase.textContent = phases[i];
+        scrollToBottom();
+        await wait(reduceMotion ? 60 : step + Math.random() * 160);
     }
-    isProcessing = false;
 }
 
-/* ---- 8. Eventos ------------------------------------------------------------- */
-chatForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    processMessage(messageInput.value);
-});
+/* ---- 8. Painel de resposta --------------------------------------------------- */
+function splitParagraphs(text) {
+    return text.split(/\n+/).map(function (p) { return p.trim(); }).filter(Boolean);
+}
 
+function renderPlaceholder() {
+    messagesContainer.innerHTML =
+        '<p class="text-center text-sm sm:text-base" style="color: rgba(220,235,220,0.6);">' +
+        escapeHtml(T().placeholder) + '</p>';
+}
+
+async function streamAnswer(fullText) {
+    messagesContainer.innerHTML = '';
+    const card = document.createElement('div');
+    card.className = 'message-bubble glass-strong rounded-3xl shadow-2xl px-5 py-4 sm:px-6 sm:py-5';
+    card.innerHTML = '<div class="answer-body space-y-3 stream-caret"></div>';
+    messagesContainer.appendChild(card);
+    const body = card.querySelector('.answer-body');
+    const paras = splitParagraphs(fullText);
+    for (let i = 0; i < paras.length; i++) {
+        const p = document.createElement('p');
+        p.className = 'stream-para bubble-text text-white text-sm sm:text-base leading-relaxed';
+        p.style.whiteSpace = 'pre-wrap';
+        p.innerHTML = escapeHtml(paras[i]).replace(/\n/g, '<br>');
+        body.appendChild(p);
+        scrollToBottom();
+        await wait(reduceMotion ? 30 : 200 + Math.random() * 220);
+    }
+    body.classList.remove('stream-caret');
+    scrollToBottom();
+}
+
+/* ---- 9. Opções -------------------------------------------------------------- */
+function setOptionsEnabled(enabled) {
+    const btns = optionsContainer.querySelectorAll('button');
+    btns.forEach(function (b) { b.disabled = !enabled; });
+}
+
+function hideDock() {
+    dockSection.classList.add('hidden');
+    optionsContainer.innerHTML = '';
+}
+
+function addOptionButton(label, onClick) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'choice-btn glass px-4 py-3 rounded-xl text-sm text-white flex items-center gap-2 shadow-md';
+    btn.innerHTML = '<span>' + escapeHtml(label) + '</span>';
+    btn.addEventListener('click', onClick);
+    optionsContainer.appendChild(btn);
+    return btn;
+}
+
+function renderNodeOptions(node, tema, labels) {
+    optionsContainer.innerHTML = '';
+    if (node.optA && node.optA.target) {
+        addOptionButton(labels.optA, function () { chooseOption(tema, node, 'A'); });
+    }
+    if (node.optB && node.optB.target) {
+        addOptionButton(labels.optB, function () { chooseOption(tema, node, 'B'); });
+    }
+    dockSection.classList.remove('hidden');
+    setOptionsEnabled(true);
+}
+
+/* ---- 10. Fluxo ---------------------------------------------------------------- */
+function resolveTarget(tema, opt) {
+    if (!opt || !opt.target) return { tema: tema, num: '01' };
+    if (opt.target === 'MENU') return { tema: tema, num: '01' };
+    if (opt.cross) return { tema: opt.cross, num: opt.target };
+    return { tema: tema, num: opt.target };
+}
+
+async function startTema(tema) {
+    if (isBusy || !started) return;
+    isBusy = true;
+    setOptionsEnabled(false);
+    hideDock();
+    await showNodeInternal(tema, '01');
+    isBusy = false;
+}
+
+async function chooseOption(tema, node, which) {
+    if (isBusy || !started) return;
+    isBusy = true;
+    setOptionsEnabled(false);
+    const opt = which === 'A' ? node.optA : node.optB;
+    const dest = resolveTarget(tema, opt);
+    await showNodeInternal(dest.tema, dest.num);
+    isBusy = false;
+}
+
+async function showNodeInternal(tema, num) {
+    const node = getNode(tema, num) || getNode(tema, '01');
+    current = { tema: tema, num: node.num };
+    const localizedPromise = localizeNode(node);
+    await aiThink(node.text.length);
+    const localized = await localizedPromise;
+    hideTyping();
+    await streamAnswer(localized.text);
+    renderNodeOptions(node, tema, localized);
+    scrollToBottom();
+}
+
+/* ---- 11. Eventos ------------------------------------------------------------- */
 shortcutButtons.forEach(function (btn) {
     btn.addEventListener('click', function () {
-        if (!isProcessing) processMessage(btn.dataset.message);
+        if (!isBusy && started) startTema(btn.dataset.tema);
     });
 });
 
-// Enter envia, Shift+Enter quebra linha
-messageInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        processMessage(messageInput.value);
-    }
+langButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        setLang(btn.dataset.lang);
+    });
 });
 
-messageInput.addEventListener('input', autoResizeTextarea);
+if (startBtn) {
+    startBtn.addEventListener('click', async function () {
+        if (started || isBusy) return;
+        started = true;
+        welcomeScreen.classList.add('welcome-hide');
+        await wait(reduceMotion ? 50 : 380);
+        welcomeScreen.remove();
+        renderPlaceholder();
+    });
+}
 
-/* ---- 9. Inicialização ---------------------------------------------------------- */
-autoResizeTextarea();
-
-// Reposiciona o chat quando o teclado virtual abre/fecha
 if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', scrollToBottom);
 }
 
-// Não força foco no mobile (evita abrir o teclado sozinho)
-if (!isTouchDevice) {
-    messageInput.focus();
-}
+/* ---- 12. Inicialização ------------------------------------------------------- */
+applyLang();
+renderPlaceholder();
+updateShortcutsFade();
